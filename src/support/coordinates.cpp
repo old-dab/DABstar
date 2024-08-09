@@ -34,7 +34,7 @@
 #include  <QFormLayout>
 #include  <QVBoxLayout>
 #include  <QSettings>
-
+#include  <QRegularExpression>
 
 class MyDoubleValidator : public QDoubleValidator
 {
@@ -45,8 +45,9 @@ class MyDoubleValidator : public QDoubleValidator
     // number of decimal digits are ignored
 
 
-    if (QRegExp regExpAllowed("^-?\\d*(\\.\\d*)?$"); // made by ChatGPT
-        !regExpAllowed.exactMatch(input))
+    QRegularExpression regExpAllowed("^-?\\d*(\\.\\d*)?$"); // made by ChatGPT
+    QRegularExpressionMatch match = regExpAllowed.match(input);
+    if (!match.hasMatch())
     {
       return Invalid;
     }
