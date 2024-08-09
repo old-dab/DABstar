@@ -37,7 +37,6 @@
 #include <cstdint>
 #include <atomic>
 #include <vector>
-#include <array>
 #include "device-handler.h"
 #include "ringbuffer.h"
 #include <random>
@@ -81,10 +80,10 @@ private:
   int32_t bufferContent = 0;
   float sLevel = 0.0f;
   int32_t sampleCount = 0;
-  bool dumping; 
+  bool dumping;
   int16_t dumpIndex = 0;
   int16_t dumpScale;
-  std::array<int16_t, DUMP_SIZE> dumpBuffer{};
+  int16_t dumpBuffer[DUMP_SIZE];
   std::atomic<SNDFILE *> dumpfilePointer;
   bool clippingOccurred = false;
   float peakLevel = -1.0e6;
@@ -92,7 +91,6 @@ private:
   float dcImag = 0.0f;
   bool dcRemovalActive = false;
 
-  void _dump_sample_to_file(const cmplx & v);
   void _wait_for_sample_buffer_filled(int32_t n);
 
 signals:

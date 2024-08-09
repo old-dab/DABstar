@@ -80,7 +80,7 @@ cmplx SampleReader::getSample(int32_t phaseOffset)
 void SampleReader::getSamples(std::vector<cmplx> & oV, const int32_t iStartIdx, int32_t iNoSamples, const int32_t iFreqOffsetBBHz, bool iShowSpec)
 {
   assert((signed)oV.size() >= iStartIdx + iNoSamples);
-  
+
   std::vector<cmplx> buffer(iNoSamples);
 
   if (!running.load()) throw 21;
@@ -99,7 +99,13 @@ void SampleReader::getSamples(std::vector<cmplx> & oV, const int32_t iStartIdx, 
   {
     for (int32_t i = 0; i < iNoSamples; i++)
     {
-      _dump_sample_to_file(*buffer.data());
+      dumpBuffer[2 * dumpIndex + 0] = real(buffer[i]) * dumpScale;
+      dumpBuffer[2 * dumpIndex + 1] = imag(buffer[i]) * dumpScale;
+      if (++ dumpIndex >= DUMP_SIZE / 2)
+      {
+        sf_writef_short(dumpfilePointer.load(), dumpBuffer, dumpIndex);
+        dumpIndex = 0;
+      }
     }
   }
 
@@ -161,18 +167,6 @@ void SampleReader::_wait_for_sample_buffer_filled(int32_t n)
   {
     usleep(10);
     bufferContent = theRig->Samples();
-  }
-}
-
-void SampleReader::_dump_sample_to_file(const cmplx & v)
-{
-  dumpBuffer[2 * dumpIndex + 0] = fixround<int16_t>(real(v) * (float)dumpScale);
-  dumpBuffer[2 * dumpIndex + 1] = fixround<int16_t>(imag(v) * (float)dumpScale);
-
-  if (++dumpIndex >= DUMP_SIZE / 2)
-  {
-    sf_writef_short(dumpfilePointer.load(), dumpBuffer.data(), dumpIndex);
-    dumpIndex = 0;
   }
 }
 
