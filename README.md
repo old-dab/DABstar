@@ -177,7 +177,7 @@ That the location, distance and direction to the transmitter can be shown, do fo
 
 ## Installing on Linux
 
-This is what I needed to install DABstar on a fresh Ubuntu 20.04 / 22.04:
+This is what I needed to install DABstar on a fresh Ubuntu 24.04:
 ```
 sudo apt-get update
 sudo apt-get install git
@@ -191,28 +191,18 @@ sudo apt-get install zlib1g-dev
 sudo apt-get install libsamplerate0-dev
 sudo apt-get install libfaad-dev
 sudo apt-get install libusb-1.0-0-dev
-sudo apt-get install libqwt-qt5-dev
+sudo apt-get install qt6-base-dev
+sudo apt-get install qmake6
 ```
 
 or same in fewer lines:
 
 ```
 sudo apt-get update
-sudo apt-get install git cmake build-essential g++ libsndfile1-dev libfftw3-dev portaudio19-dev zlib1g-dev libsamplerate0-dev libfaad-dev libusb-1.0-0-dev
+sudo apt-get install git cmake build-essential g++ libsndfile1-dev libfftw3-dev portaudio19-dev zlib1g-dev libsamplerate0-dev libfaad-dev libusb-1.0-0-dev qt6-base-dev qmake6
 ```
 
-For Qt5 try one of following (Ubuntu 22.04 needs the second one): 
-```
-sudo apt-get install qt5-default
-sudo apt-get install qtbase5-dev
-```
-
-For QWT try this (this will likely install Qwt 6.1.4):
-```
-sudo apt-get install libqwt-qt5-dev
-```
-
-If you have troubles with the last QWT package `libqwt-qt5-dev` try to build QWT for yourself. See [Link](#qwt-installation--building).
+Build QWT for yourself. See [Link](#qwt-installation--building).
 
 Then for building DABstar do:
 ```
@@ -279,7 +269,7 @@ https://qwt.sourceforge.io/qwtinstall.html
 1. Download QWT 6.2.0: https://sourceforge.net/projects/qwt/files/qwt/6.2.0/qwt-6.2.0.zip/download
 2. Unzip downloaded file and go into unzipped folder
 3. comment out line "`QWT_CONFIG += QwtSvg`" with a "#" in file `qwtconfig.pri` if you have problems finding a SVG QT header file
-4. `qmake qwt.pro`
+4. `qmake6 qwt.pro`
 5. `make` (you may provide the argument `-jn` for `n` number of used threads)
 6. `sudo make install`
                                                 

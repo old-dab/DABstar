@@ -114,25 +114,25 @@ set(TCP_STREAMER OFF)
 # select one or more devices (set to ON)
 # attention: option() does not overwrite the CMake cache entries, so use CMake command line or your IDE to overwrite this
 # As I (tomneda) possess not all of these devices I place an "untested" behind. They may run, or not run.
-option(AIRSPY OFF)       # untested
-option(SDRPLAY_V2 OFF)   # untested
-option(SDRPLAY_V3 OFF)
-option(HACKRF OFF)
-option(LIMESDR OFF)      # untested
-option(RTL_TCP OFF)      # untested
-option(PLUTO OFF)        # untested
-option(UHD OFF)
+option(AIRSPY "Use Airspy" OFF)       # untested
+option(SDRPLAY_V2 "Use Sdrplay V2" OFF)   # untested
+option(SDRPLAY_V3 "Use Sdrplay V3" OFF)
+option(HACKRF "Use Hackrf" OFF)
+option(LIMESDR "Use Limesdr" OFF)      # untested
+option(RTL_TCP "Rtl_tcp" ON)      # untested
+option(PLUTO "Use Pluto" OFF)        # untested
+option(UHD "Use Uhd" OFF)
 # Note that since there are problems with the rtlsdr interface under Windows we split the rtlsdr interface
 # into two versions one for Linux and one for Window
-option(RTLSDR_LINUX OFF)
-option(RTLSDR_WIN OFF)   # untested (windows in general)
+option(RTLSDR_LINUX "Use Rtlsdr" ON)
+option(RTLSDR_WIN "Use Rtlsdr" OFF)   # untested (windows in general)
 
 # additional options
 option(USE_HBF "Use oversampling with half band filter (needs liquid-dsp)" OFF)  # this needs liquid
-option(DATA_STREAMER OFF)
-option(VITERBI_SSE OFF)
-option(VITERBI_NEON OFF)
-option(FDK_AAC OFF)
+option(DATA_STREAMER "Use DATA STREAMER" OFF)
+option(VITERBI_SSE "Use Viterbi SSE" OFF)
+option(VITERBI_NEON "Use Viterbi NEON" OFF)
+option(FDK_AAC "Use FDK-AAC" OFF)
 
 set(USE_FFT FFTW3 CACHE STRING "Choose FFT out of these free: FFTW3 KISS NAYUKI")
 set_property(CACHE USE_FFT PROPERTY STRINGS "FFTW3;KISS;NAYUKI")
@@ -162,11 +162,11 @@ endif ()
 
 find_package(PkgConfig) # imports pkg_check_modules() macros
 find_package(LSBId REQUIRED)
-find_package(Qt5Core REQUIRED)
-find_package(Qt5Widgets REQUIRED)
-find_package(Qt5Network REQUIRED)
-find_package(Qt5Xml REQUIRED)
-find_package(Qt5Sql REQUIRED)
+find_package(Qt6Core REQUIRED)
+find_package(Qt6Widgets REQUIRED)
+find_package(Qt6Network REQUIRED)
+find_package(Qt6Xml REQUIRED)
+find_package(Qt6Sql REQUIRED)
 
 # this should be in FFT sub project but it is important that the compiler switches are already set here
 if(USE_FFT STREQUAL FFTW3)
@@ -511,7 +511,7 @@ endif (DATA_STREAMER)
 
 if (TCP_STREAMER)
     add_definitions(-DTCP_STREAMER)
-    find_package(Qt5Network REQUIRED)
+    find_package(Qt6Network REQUIRED)
     set(${objectName}_HDRS
             ${${objectName}_HDRS}
             src/output/tcp-streamer.h
@@ -525,11 +525,11 @@ endif (TCP_STREAMER)
 
 if (QT_AUDIO)
     add_definitions(-DQT_AUDIO)
-    find_package(Qt5Multimedia REQUIRED)
+    find_package(Qt6Multimedia REQUIRED)
     include_directories(
-            ${Qt5Multimedia_INCLUDE_DIRS}
+            ${Qt6Multimedia_INCLUDE_DIRS}
     )
-    list(APPEND extraLibs Qt5::Multimedia)
+    list(APPEND extraLibs Qt6::Multimedia)
     set(${objectName}_HDRS
             ${${objectName}_HDRS}
             src/output/Qt-audio.h
@@ -560,7 +560,7 @@ endif (USE_PORTAUDIO)
 
 include_directories(
         #${SDRPLAY_INCLUDES}
-        ${QT5Widgets_INCLUDES}
+        ${QT6Widgets_INCLUDES}
         ${QT_QTCORE_INCLUDE_DIR}
         ${QT_QTGUI_INCLUDE_DIR}
         ${PORTAUDIO_INCLUDE_DIRS}
@@ -579,10 +579,10 @@ add_executable(${objectName}
 
 target_link_libraries(${objectName}
         PRIVATE
-        Qt5::Widgets
-        Qt5::Network
-        Qt5::Xml
-        Qt5::Sql
+        Qt6::Widgets
+        Qt6::Network
+        Qt6::Xml
+        Qt6::Sql
         ${RTLTCP_lib}
         ${extraLibs}
         ${FAAD_LIBRARIES}
