@@ -204,71 +204,36 @@ if (LIMESDR)
     add_definitions(-DHAVE_LIME)
 endif (LIMESDR)
 
-if (RTLSDR_LINUX)
+if (RTLSDR)
     set(${devicesLibName}_UIS
             ${${devicesLibName}_UIS}
-            rtlsdr-handler-linux/rtlsdr-widget.ui
+            rtlsdr-handler/rtlsdr-widget.ui
     )
 
     set(${devicesLibName}_MOCS
             ${${devicesLibName}_MOCS}
-            rtlsdr-handler-linux/rtl-dongleselect.h
-            rtlsdr-handler-linux/rtlsdr-handler.h
+            rtlsdr-handler/rtl-dongleselect.h
+            rtlsdr-handler/rtlsdr-handler.h
     )
 
     include_directories(
-            rtlsdr-handler-linux/
+            rtlsdr-handler
     )
 
     set(${devicesLibName}_HDRS
             ${${devicesLibName}_HDRS}
-            rtlsdr-handler-linux/rtlsdr-handler.h
-            rtlsdr-handler-linux/rtl-dongleselect.h
-            rtlsdr-handler-linux/rtl-sdr.h
-            rtlsdr-handler-linux/rtl-sdr_export.h
+            rtlsdr-handler/rtlsdr-handler.h
+            rtlsdr-handler/rtl-dongleselect.h
     )
 
     set(${devicesLibName}_SRCS
             ${${devicesLibName}_SRCS}
-            rtlsdr-handler-linux/rtlsdr-handler.cpp
-            rtlsdr-handler-linux/rtl-dongleselect.cpp
+            rtlsdr-handler/rtlsdr-handler.cpp
+            rtlsdr-handler/rtl-dongleselect.cpp
     )
 
     add_definitions(-DHAVE_RTLSDR)
-endif ()
-
-if (RTLSDR_WIN)
-    set(${devicesLibName}_UIS
-            ${${devicesLibName}_UIS}
-            rtlsdr-handler-win/rtlsdr-widget.ui
-    )
-
-    set(${devicesLibName}_MOCS
-            ${${devicesLibName}_MOCS}
-            rtlsdr-handler-win/rtl-dongleselect.h
-            rtlsdr-handler-win/rtlsdr-handler.h
-    )
-
-    include_directories(
-            rtlsdr-handler-win/
-    )
-
-    set(${devicesLibName}_HDRS
-            ${${devicesLibName}_HDRS}
-            rtlsdr-handler-win/rtlsdr-handler.h
-            rtlsdr-handler-win/rtl-dongleselect.h
-            rtlsdr-handler-win/rtl-sdr.h
-            rtlsdr-handler-win/rtl-sdr_export.h
-    )
-
-    set(${devicesLibName}_SRCS
-            ${${devicesLibName}_SRCS}
-            rtlsdr-handler-win/rtlsdr-handler.cpp
-            rtlsdr-handler-win/rtl-dongleselect.cpp
-    )
-
-    add_definitions(-DHAVE_RTLSDR)
-endif ()
+endif (RTLSDR)
 
 if (UHD)
     find_package(UHD REQUIRED)

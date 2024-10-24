@@ -217,7 +217,7 @@ Reduce resp. adapt the `cmake` command line for the devices/features you need.
 
 E.G.: If you have an RTL-SDR stick and work on a desktop PC (I have only tested this on an Intel-PC), this should be the minimum recommendation:
 ```
-cmake .. -DRTLSDR_LINUX=ON -DVITERBI_SSE=ON
+cmake .. -DRTLSDR=ON -DVITERBI_SSE=ON
 ```
 
 To speed up compilation you can provide `-j<n>` as argument with `<n>` number of threads after the `make` command. E.G. `make -j4`.

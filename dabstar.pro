@@ -293,7 +293,7 @@ FORMS += \
     src/specials/dumpviewer/dumpwidget.ui \
     src/specials/sound-client/soundwidget.ui
 
-DESTDIR		= ../../DABstar-2.8.0
+#DESTDIR		= ../../DABstar-2.8.0
 LIBS		+= -L../../dabstar-libs/lib
 CONFIG		+= airspy
 #CONFIG		+= spyServer-16
@@ -333,13 +333,13 @@ CONFIG		+= portaudio
 #	linux version loads the function from the so
 dabstick {
 	DEFINES		+= HAVE_RTLSDR
-	DEPENDPATH	+= src/devices/rtlsdr-handler-linux
-	INCLUDEPATH	+= src/devices/rtlsdr-handler-linux
-	HEADERS		+= src/devices/rtlsdr-handler-linux/rtlsdr-handler.h \
-	                   src/devices/rtlsdr-handler-linux/rtl-dongleselect.h
-	SOURCES		+= src/devices/rtlsdr-handler-linux/rtlsdr-handler.cpp \
-	                   src/devices/rtlsdr-handler-linux/rtl-dongleselect.cpp 
-	FORMS		+= src/devices/rtlsdr-handler-linux/rtlsdr-widget.ui
+	DEPENDPATH	+= src/devices/rtlsdr-handler
+	INCLUDEPATH	+= src/devices/rtlsdr-handler
+	HEADERS		+= src/devices/rtlsdr-handler/rtlsdr-handler.h \
+	                   src/devices/rtlsdr-handler/rtl-dongleselect.h
+	SOURCES		+= src/devices/rtlsdr-handler/rtlsdr-handler.cpp \
+	                   src/devices/rtlsdr-handler/rtl-dongleselect.cpp 
+	FORMS		+= src/devices/rtlsdr-handler/rtlsdr-widget.ui
 }
 
 #

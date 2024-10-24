@@ -124,13 +124,12 @@ option(PLUTO "Use Pluto" OFF)        # untested
 option(UHD "Use Uhd" OFF)
 # Note that since there are problems with the rtlsdr interface under Windows we split the rtlsdr interface
 # into two versions one for Linux and one for Window
-option(RTLSDR_LINUX "Use Rtlsdr" ON)
-option(RTLSDR_WIN "Use Rtlsdr" OFF)   # untested (windows in general)
+option(RTLSDR "Use Rtlsdr" ON)
 
 # additional options
 option(USE_HBF "Use oversampling with half band filter (needs liquid-dsp)" OFF)  # this needs liquid
 option(DATA_STREAMER "Use DATA STREAMER" OFF)
-option(VITERBI_SSE "Use Viterbi SSE" OFF)
+option(VITERBI_SSE "Use Viterbi SSE" ON)
 option(VITERBI_NEON "Use Viterbi NEON" OFF)
 option(FDK_AAC "Use FDK-AAC" OFF)
 
