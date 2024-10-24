@@ -23,7 +23,7 @@ RESOURCES	+= resources.qrc
 
 DEFINES		+= APP_NAME=\\\"$$TARGET\\\"
 DEFINES		+= PRJ_NAME=\\\"DABstar\\\"
-DEFINES		+= PRJ_VERS=\\\"2.5.0\\\"
+DEFINES		+= PRJ_VERS=\\\"2.8.0\\\"
 
 # For more parallel processing, uncomment the following
 # defines
@@ -293,7 +293,7 @@ FORMS += \
     src/specials/dumpviewer/dumpwidget.ui \
     src/specials/sound-client/soundwidget.ui
 
-DESTDIR		= ../../DABstar-2.5.0
+DESTDIR		= ../../DABstar-2.8.0
 LIBS		+= -L../../dabstar-libs/lib
 CONFIG		+= airspy
 #CONFIG		+= spyServer-16
@@ -307,6 +307,7 @@ CONFIG		+= sdrplay-v3
 #CONFIG		+= lime
 CONFIG		+= VITERBI_SSE
 CONFIG		+= faad
+#CONFIG		+= fdk-aac
 LIBS		+= -lsndfile-1
 LIBS		+= -lsamplerate
 LIBS		+= -lwinpthread
@@ -604,8 +605,8 @@ faad	{
 
 fdk-aac {
         DEFINES         += __WITH_FDK_AAC__
-        INCLUDEPATH     += arc/specials/fdk-aac
+        INCLUDEPATH     += src/specials/fdk-aac
         HEADERS         += src/backend/audio/fdk-aac.h
         SOURCES         += src/backend/audio/fdk-aac.cpp
-        PKGCONFIG       += fdk-aac
+	LIBS		+= -lfdk-aac.dll
 }
