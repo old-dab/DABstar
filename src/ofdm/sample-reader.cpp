@@ -30,7 +30,7 @@
  */
 #include  "sample-reader.h"
 #include  "radio.h"
-#include  <ctime>
+#include  <time.h>
 
 static inline int16_t value_for_bit_pos(int16_t b)
 {
@@ -80,7 +80,7 @@ cmplx SampleReader::getSample(int32_t phaseOffset)
 void SampleReader::getSamples(std::vector<cmplx> & oV, const int32_t iStartIdx, int32_t iNoSamples, const int32_t iFreqOffsetBBHz, bool iShowSpec)
 {
   assert((signed)oV.size() >= iStartIdx + iNoSamples);
-  
+
   std::vector<cmplx> buffer(iNoSamples);
 
   if (!running.load()) throw 21;
@@ -97,7 +97,16 @@ void SampleReader::getSamples(std::vector<cmplx> & oV, const int32_t iStartIdx, 
 
   if (dumpfilePointer.load() != nullptr)
   {
-    _dump_samples_to_file(iNoSamples, buffer.data());
+    for (int32_t i = 0; i < iNoSamples; i++)
+    {
+      dumpBuffer[2 * dumpIndex + 0] = real(buffer[i]) * dumpScale;
+      dumpBuffer[2 * dumpIndex + 1] = imag(buffer[i]) * dumpScale;
+      if (++ dumpIndex >= DUMP_SIZE / 2)
+      {
+        sf_writef_short(dumpfilePointer.load(), dumpBuffer, dumpIndex);
+        dumpIndex = 0;
+      }
+    }
   }
 
   //	OK, we have samples!!
@@ -115,24 +124,12 @@ void SampleReader::getSamples(std::vector<cmplx> & oV, const int32_t iStartIdx, 
     // Perform DC removal if wanted
     if (dcRemovalActive)
     {
-      const float v_i = real(v);
-      const float v_q = imag(v);
+      const float v_r = real(v);
+      const float v_i = imag(v);
       constexpr float ALPHA = 1.0f / INPUT_RATE / 1.00f /*s*/;
-      mean_filter(meanI, v_i, ALPHA);
-      mean_filter(meanQ, v_q, ALPHA);
-#if 0
-      const float x_i = v_i - meanI;
-      const float x_q = v_q - meanQ;
-      mean_filter(meanII, x_i * x_i, ALPHA);
-      mean_filter(meanIQ, x_i * x_q, ALPHA);
-      const float phi = meanIQ / meanII;
-      const float x_q_corr = x_q - phi * x_i;
-      mean_filter(meanQQ, x_q_corr * x_q_corr, ALPHA);
-      const float gainQ = std::sqrt(meanII / meanQQ);
-      v = cmplx(x_i, x_q_corr * gainQ);
-#else
-      v = cmplx(v_i - meanI, v_q - meanQ);
-#endif
+      mean_filter(dcReal, v_r, ALPHA);
+      mean_filter(dcImag, v_i, ALPHA);
+      v = cmplx(v_r - dcReal, v_i - dcImag);
     }
 
     // The mixing has no effect on the absolute level detection, so do it beforehand
@@ -173,23 +170,6 @@ void SampleReader::_wait_for_sample_buffer_filled(int32_t n)
   }
 }
 
-void SampleReader::_dump_samples_to_file(const int32_t iNoSamples, const cmplx * const ipV)
-{
-	const float scaleFactor = (INT16_MAX >> 2) / sLevel; // scale to 14 bit mean dynamic range
-
-	for (int32_t i = 0; i < iNoSamples; i++)
-	{
-		dumpBuffer[2 * dumpIndex + 0] = (int16_t)(real(ipV[i]) * scaleFactor);
-		dumpBuffer[2 * dumpIndex + 1] = (int16_t)(imag(ipV[i]) * scaleFactor);
-
-		if (++dumpIndex >= DUMP_SIZE / 2)
-		{
-			sf_writef_short(dumpfilePointer.load(), dumpBuffer.data(), dumpIndex);
-			dumpIndex = 0;
-		}
-	}
-}
-
 void SampleReader::startDumping(SNDFILE * f)
 {
   dumpfilePointer.store(f);
@@ -216,7 +196,7 @@ float SampleReader::get_linear_peak_level_and_clear()
 
 void SampleReader::set_dc_removal(bool iRemoveDC)
 {
-  meanI = meanQ = 0.0f;
+  dcReal = dcImag = 0.0f;
   dcRemovalActive = iRemoveDC;
 }
 

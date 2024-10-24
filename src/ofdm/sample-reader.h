@@ -37,7 +37,6 @@
 #include <cstdint>
 #include <atomic>
 #include <vector>
-#include <array>
 #include "device-handler.h"
 #include "ringbuffer.h"
 #include <random>
@@ -62,7 +61,7 @@ public:
   bool check_clipped_and_clear();
   void set_dc_removal(bool iRemoveDC);
 
-  [[nodiscard]] inline cmplx get_dc_offset() const { return { meanI, meanQ }; }
+  [[nodiscard]] inline cmplx get_dc_offset() const { return { dcReal, dcImag }; }
 
 private:
   static constexpr uint16_t DUMP_SIZE = 4096;
@@ -81,21 +80,17 @@ private:
   int32_t bufferContent = 0;
   float sLevel = 0.0f;
   int32_t sampleCount = 0;
-  bool dumping; 
+  bool dumping;
   int16_t dumpIndex = 0;
   int16_t dumpScale;
-  std::array<int16_t, DUMP_SIZE> dumpBuffer{};
+  int16_t dumpBuffer[DUMP_SIZE];
   std::atomic<SNDFILE *> dumpfilePointer;
   bool clippingOccurred = false;
   float peakLevel = -1.0e6;
-  float meanI = 0.0f;
-  float meanQ = 0.0f;
-  float meanII = 1.0f;
-  float meanQQ = 1.0f;
-  float meanIQ = 0.0f;
+  float dcReal = 0.0f;
+  float dcImag = 0.0f;
   bool dcRemovalActive = false;
 
-  void _dump_samples_to_file(const int32_t iNoSamples, const cmplx * const ipV);
   void _wait_for_sample_buffer_filled(int32_t n);
 
 signals:

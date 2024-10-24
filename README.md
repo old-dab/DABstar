@@ -2,7 +2,7 @@
 
 ---
 
-![screenshot.png](res/for_readme/screenshot.png)
+![screenshot.png](res/screenshot.png)
 (Picture from V2.2.0)
 
 ## Table of Content
@@ -46,9 +46,10 @@ I decided to give it the new name **DABstar**.
 I saw that with starting of Qt-DAB 6.x, it uses also new code parts and ideas from here. I am very appreciated about this :smiley:.
 This is of course very acknowledged that my work can give something back.
 
-I will try to maintain always a working state on `main` branch, so use this for building the software for yourself. 
-**Please do not try any other branch besides `main` branch. 
-They are indented for development, backups and tests and will not always work in their current state.**
+I will try to maintain always a working state on `main` branch.
+Only when I change the MAJOR (1st digit) and/or MINOR (2nd digit) part of the version number (see [https://semver.org/](https://semver.org/) for nomenclature)
+I will describe the changes here.
+If I only raise the PATCH version number (3rd digit) when I provide (urgent) intermediate patches.
 
 For at least each new version change in the MAJOR and/or MINOR part I will provide a version tag for easy referencing.
 Please use the tags page on Github: [https://github.com/tomneda/DABstar/tags](https://github.com/tomneda/DABstar/tags).
@@ -89,9 +90,9 @@ for a more detailed description of the changes.
   - Show whether EPG (Electronic Program Guide) data are available
   - Show whether SBR (Spectrum Band Replication) mode is active
   - Show whether PS (Parameter Stereo) mode is active
-  - Show whether an announcement is currently made.
+  - Show whether an announcement is currently made. 
 
-![](res/for_readme/mainwidget.png)
+![](res/mainwidget.png)
 
 (move over the status elements like **SBR** or **PS** to get tooltip information)
 
@@ -176,7 +177,7 @@ That the location, distance and direction to the transmitter can be shown, do fo
 
 ## Installing on Linux
 
-This is what I needed to install DABstar on a fresh Ubuntu 20.04 / 22.04:
+This is what I needed to install DABstar on a fresh Ubuntu 24.04:
 ```
 sudo apt-get update
 sudo apt-get install git
@@ -188,36 +189,20 @@ sudo apt-get install libfftw3-dev
 sudo apt-get install portaudio19-dev
 sudo apt-get install zlib1g-dev
 sudo apt-get install libsamplerate0-dev
+sudo apt-get install libfaad-dev
 sudo apt-get install libusb-1.0-0-dev
-sudo apt-get install libqwt-qt5-dev
+sudo apt-get install qt6-base-dev
+sudo apt-get install qmake6
 ```
 
-As libfaad had made issues with low rate services I switched over to FDK-AAC. 
-But also the repository version in Ubuntu 24.04 has still flaws with PS (Parametric Stereo) services.
-So I recommend to build it for your own. I used the latest main version which is v2.0.3.
+or same in fewer lines:
+
 ```
-git clone https://github.com/mstorsjo/fdk-aac.git
-cd fdk-aac
-git checkout v2.0.3
-mkdir build
-cd build
-cmake ..
-make
-sudo make install
+sudo apt-get update
+sudo apt-get install git cmake build-essential g++ libsndfile1-dev libfftw3-dev portaudio19-dev zlib1g-dev libsamplerate0-dev libfaad-dev libusb-1.0-0-dev qt6-base-dev qmake6
 ```
 
-For Qt5 try one of following (Ubuntu 22.04 needs the second one): 
-```
-sudo apt-get install qt5-default
-sudo apt-get install qtbase5-dev
-```
-
-For QWT try this (this will likely install Qwt 6.1.4):
-```
-sudo apt-get install libqwt-qt5-dev
-```
-
-If you have troubles with the last QWT package `libqwt-qt5-dev` try to build QWT for yourself. See [Link](#qwt-installation--building).
+Build QWT for yourself. See [Link](#qwt-installation--building).
 
 Then for building DABstar do:
 ```
@@ -225,7 +210,7 @@ git clone https://github.com/tomneda/DABstar.git
 cd DABstar
 mkdir build
 cd build
-cmake .. -DAIRSPY=ON -DSDRPLAY_V2=ON -DSDRPLAY_V3=ON -DHACKRF=ON -DLIMESDR=ON -DRTL_TCP=ON -DPLUTO=ON -DUHD=ON -DRTLSDR_LINUX=ON -DUSE_HBF=OFF -DDATA_STREAMER=OFF -DVITERBI_SSE=ON -DVITERBI_NEON=OFF -DFDK_AAC=ON
+cmake .. -DAIRSPY=ON -DSDRPLAY_V2=ON -DSDRPLAY_V3=ON -DHACKRF=ON -DLIMESDR=ON -DRTL_TCP=ON -DPLUTO=ON -DUHD=ON -DRTLSDR_LINUX=ON -DUSE_HBF=OFF -DDATA_STREAMER=OFF -DVITERBI_SSE=ON -DVITERBI_NEON=OFF -DFDK_AAC=OFF
 make  
 ```
 Reduce resp. adapt the `cmake` command line for the devices/features you need.
@@ -284,13 +269,13 @@ https://qwt.sourceforge.io/qwtinstall.html
 1. Download QWT 6.2.0: https://sourceforge.net/projects/qwt/files/qwt/6.2.0/qwt-6.2.0.zip/download
 2. Unzip downloaded file and go into unzipped folder
 3. comment out line "`QWT_CONFIG += QwtSvg`" with a "#" in file `qwtconfig.pri` if you have problems finding a SVG QT header file
-4. `qmake qwt.pro`
+4. `qmake6 qwt.pro`
 5. `make` (you may provide the argument `-jn` for `n` number of used threads)
 6. `sudo make install`
                                                 
 ## Licences
 
-Rights of Qt-DAB, Qt, Qwt, FFTW, portaudio, FDK-AAC, libfaad, libsamplerate and libsndfile gratefully acknowledged.
+Rights of Qt-DAB, Qt, Qwt, FFTW, portaudio, libfaad, libsamplerate and libsndfile gratefully acknowledged.
 
 Rights of developers of RTLSDR library, SDRplay libraries, AIRspy library and others gratefully acknowledged.
 
