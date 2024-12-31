@@ -464,7 +464,7 @@ void TiiDetector::_comp_etsi_and_non_etsi(bool & oIsNonEtsiPhase, int & oCount, 
   }
 }
 
-void TiiDetector::_find_collisions(std::vector<STiiResult> ioResultVec, int iMainId, int iSubId,
+void TiiDetector::_find_collisions(std::vector<STiiResult> &ioResultVec, int iMainId, int iSubId,
                                    const std::byte iPattern, const float iMax, const float iThresholdLevel, const int iCount, const bool iIsNonEtsi,
                                    const TCmplxTable192 & iCmplxTable, const TFloatTable192 & iFloatTable) const
 {
@@ -476,8 +476,8 @@ void TiiDetector::_find_collisions(std::vector<STiiResult> ioResultVec, int iMai
   {
     if ((cMainIdPatternTable[iMainId] & rev_bit_val(i)) == std::byte{0})
     {
-      if (const int index = iSubId + cGroupSize24 * i;
-          iFloatTable[index] > iThresholdLevel)
+      const int index = iSubId + cGroupSize24 * i;
+      if (iFloatTable[index] > iThresholdLevel)
       {
         sum += iCmplxTable[index];
       }
