@@ -29,9 +29,9 @@ SoapyHandler::SoapyHandler(QSettings * soapySettings)
   : myFrame(nullptr)
 {
   int deviceIndex = 0;
-  std::vector<QString> deviceString;
-  std::vector<QString> serialString;
-  std::vector<QString> labelString;
+  std::vector<QString> driverVector;
+  std::vector<QString> serialVector;
+  std::vector<QString> labelVector;
 
   this->soapySettings = soapySettings;
   soapySettings->beginGroup("soapySettings");
@@ -43,46 +43,51 @@ SoapyHandler::SoapyHandler(QSettings * soapySettings)
   myFrame.setWindowFlag(Qt::Tool, true); // does not generate a task bar icon
   //myFrame.show();
   const auto results = SoapySDR::Device::enumerate();
-  u32 length = (u32)results.size();
 
-  if (length == 0)
+  for (size_t i = 0; i < results.size(); i++)
+  {
+    QString driver;
+    QString serial;
+    QString label;
+    bool isAudio = false;
+    fprintf(stderr, "Found device #%d:\n", (int)i);
+    for (const auto &it : results[i])
+    {
+      fprintf(stderr, "  %s = %s\n", it.first.c_str(), it.second.c_str());
+      if (it.first == std::string("driver"))
+      {
+        driver = QString(it.second.c_str());
+        if (driver == "audio")
+          isAudio = true;
+      }
+      if (it.first == std::string("serial"))
+      {
+        serial = QString(it.second.c_str());
+      }
+      if (it.first == std::string("label"))
+      {
+        label = QString(it.second.c_str());
+      }
+    }
+    if (!isAudio)
+    {
+      driverVector.push_back(driver);
+      serialVector.push_back(serial);
+      labelVector.push_back(label);
+    }
+    fprintf(stderr, "\n");
+  }
+  if (labelVector.empty())
   {
     throw (std_exception_string("Could not find soapy support"));
     return;
   }
 
-  deviceString.resize(length);
-  serialString.resize(length);
-  labelString.resize(length);
-  for (u32 i = 0; i < length; i++)
-  {
-    fprintf(stderr, "Found device #%d:\n", i);
-    for (const auto &it : results[i])
-    {
-      fprintf(stderr, "  %s = %s\n", it.first.c_str(), it.second.c_str());
-      if (QString(it.first.c_str()) == "driver")
-      {
-        deviceString[i] = QString(it.second.c_str());
-      }
-      if (QString(it.first.c_str()) == "serial")
-      {
-        serialString[i] = QString(it.second.c_str());
-      }
-      if (QString(it.first.c_str()) == "label")
-      {
-        labelString[i] = QString(it.second.c_str());
-      }
-    }
-    fprintf(stderr, "\n");
-  }
-
-  if (length > 1)
+  if (labelVector.size() > 1)
   {
     dongleSelect deviceSelector;
-    for (u32 i = 0; i < length; i++)
-    {
-      deviceSelector.addtoDongleList(labelString[i]);
-    }
+    for (auto &s : labelVector)
+      deviceSelector.addtoDongleList(s);
     deviceIndex = deviceSelector.QDialog::exec();
   }
 
@@ -97,10 +102,10 @@ SoapyHandler::SoapyHandler(QSettings * soapySettings)
   agcControl->hide();
   ppm_correction->hide();
   labelCorr->hide();
-  deviceLabel->setText(deviceString[deviceIndex]);
-  serialNumber->setText(serialString[deviceIndex]);
+  deviceLabel->setText(driverVector[deviceIndex]);
+  serialNumber->setText(serialVector[deviceIndex]);
 
-  createDevice(deviceString[deviceIndex], serialString[deviceIndex]);
+  createDevice(driverVector[deviceIndex], serialVector[deviceIndex]);
 }
 
 SoapyHandler::~SoapyHandler(void)
