@@ -27,17 +27,10 @@
  *    along with Qt-DAB if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-#include  "dab-constants.h"
 #include  "tii-codes.h"
 #include  <array>
-#include  <QMessageBox>
 #include  <cstdio>
-#include  <QDir>
-#include  <QString>
-#include  <cmath>
-#include  <cstdio>
-#include  <string>
-#include  <fstream>
+#include  <QSettings>
 
 enum
 {
@@ -74,9 +67,8 @@ bool TiiHandler::_load_library()
   mpFn_close_tii = nullptr;
   mpFn_loadTable = nullptr;
 
-#ifndef _WIN32 // we cannot read the TII lib in windows
-  std::string libFile = "libtii-lib";
-  mphandle = new QLibrary(libFile.c_str());
+  const char libFile[] = "libtii-lib";
+  mphandle = new QLibrary(libFile);
   mphandle->load();
 
   if (mphandle->isLoaded())
@@ -87,27 +79,26 @@ bool TiiHandler::_load_library()
 
       if (mpTiiLibHandler != nullptr)
       {
-        fprintf(stdout, "Opening '%s' and initialization was successful\n", libFile.c_str());
+        fprintf(stdout, "Opening '%s' and initialization was successful\n", libFile);
         delete (mphandle);
         return true;
       }
       else
       {
-        fprintf(stderr, "Opening '%s' and initialization failed with error %s\n", libFile.c_str(), dlerror());
+        fprintf(stderr, "Opening '%s' and initialization failed\n", libFile);
       }
     }
     else
     {
       mpTiiLibHandler = nullptr;
-      fprintf(stderr, "Failed to open functions in library %s with error '%s'\n", libFile.c_str(), dlerror());
+      fprintf(stderr, "Failed to open functions in library %s\n", libFile);
     }
     delete (mphandle);
   }
   else
   {
-    fprintf(stderr, "Failed to load library %s with error '%s'\n", libFile.c_str(), dlerror());
+    fprintf(stderr, "Failed to load library %s\n", libFile);
   }
-#endif
   return false;
 }
 
@@ -166,15 +157,15 @@ const STiiDataEntry * TiiHandler::get_transmitter_data(const QString & iChannel,
   return nullptr;
 }
 
-//	Great circle distance https://towardsdatascience.com/calculating-the-distance-between-two-locations-using-geocodes-1136d810e517 and
-//	https://www.movable-type.co.uk/scripts/latlong.html
-//	Haversine formula applied
+//  Great circle distance https://towardsdatascience.com/calculating-the-distance-between-two-locations-using-geocodes-1136d810e517 and
+//  https://www.movable-type.co.uk/scripts/latlong.html
+//  Haversine formula applied
 f64 TiiHandler::_distance_2(f32 latitude1, f32 longitude1, f32 latitude2, f32 longitude2) const
 {
   const f64 R = 6371;
   const f64 Phi1 = latitude1 * M_PI / 180;
   const f64 Phi2 = latitude2 * M_PI / 180;
-  // const f64	dPhi	= (latitude2 - latitude1) * M_PI / 180;
+  // const f64  dPhi    = (latitude2 - latitude1) * M_PI / 180;
   const f64 dDelta = (longitude2 - longitude1) * M_PI / 180;
 
   if ((latitude2 == 0) || (longitude2 == 0))

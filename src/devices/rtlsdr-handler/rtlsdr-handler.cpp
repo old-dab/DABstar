@@ -143,13 +143,7 @@ RtlSdrHandler::RtlSdrHandler(QSettings * ipSettings,
   inputRate = INPUT_RATE;
   workerHandle = nullptr;
   isActive.store(false);
-#ifdef  _WIN32
-  const char * libraryString = "librtlsdr.dll";
-#elif __linux__
-  const char * libraryString = "librtlsdr.so";
-#elif __APPLE__
-  const char * libraryString = "librtlsdr.dylib";
-#endif
+  const char * libraryString = "librtlsdr";
   phandle = new QLibrary(libraryString);
   phandle->load();
 

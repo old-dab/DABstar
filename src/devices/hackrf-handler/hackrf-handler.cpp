@@ -67,14 +67,7 @@ HackRfHandler::HackRfHandler(QSettings * iSetting, const QString & iRecorderVers
   myFrame.setWindowFlag(Qt::Tool, true); // does not generate a task bar icon
   myFrame.show();
 
-#ifdef  _WIN32
-  const char *libraryString = "libhackrf.dll";
-#elif __linux__
-  const char * libraryString = "libhackrf.so";
-#elif __APPLE__
-  const char *libraryString = "libhackrf.dylib";
-#endif
-
+  const char *libraryString = "libhackrf";
   mpHandle = new QLibrary(libraryString);
   mpHandle->load();
 
@@ -89,11 +82,11 @@ HackRfHandler::HackRfHandler(QSettings * iSetting, const QString & iRecorderVers
     throw (std_exception_string("could not find one or more library functions"));
   }
 
-  //	From here we have a library available
+  //    From here we have a library available
 
   mVfoFreqHz = kHz(220000);
 
-  //	See if there are settings from previous incarnations
+  //    See if there are settings from previous incarnations
   mpHackrfSettings->beginGroup("hackrfSettings");
   sliderLnaGain->setValue(mpHackrfSettings->value("hack_lnaGain", DEFAULT_LNA_GAIN).toInt());
   sliderVgaGain->setValue(mpHackrfSettings->value("hack_vgaGain", DEFAULT_VGA_GAIN).toInt());
@@ -146,7 +139,7 @@ HackRfHandler::HackRfHandler(QSettings * iSetting, const QString & iRecorderVers
     lblDeviceName->setText(mHackrf.usb_board_id_name(board_id));
   }
 
-  //	and be prepared for future changes in the settings
+  //    and be prepared for future changes in the settings
   connect(sliderLnaGain, &QSlider::valueChanged, this, &HackRfHandler::slot_set_lna_gain);
   connect(sliderVgaGain, &QSlider::valueChanged, this, &HackRfHandler::slot_set_vga_gain);
 #if QT_VERSION >= QT_VERSION_CHECK(6, 7, 0)
@@ -193,8 +186,8 @@ void HackRfHandler::setVFOFrequency(i32 newFrequency)
 {
   CHECK_ERR_RETURN(mHackrf.set_freq(theDevice, newFrequency * mRefFreqErrFac));
 
-  //	It seems that after changing the frequency, the preamp is switched off
-  //	(tomneda: do not see this, I guess the bug is already fixed, but leave the workaround)
+  //    It seems that after changing the frequency, the preamp is switched off
+  //    (tomneda: do not see this, I guess the bug is already fixed, but leave the workaround)
   if (btnAmpEnable->checkState() == Qt::Checked)
   {
     slot_enable_amp(1);
@@ -249,7 +242,7 @@ void HackRfHandler::slot_set_ppm_correction(i32 ppm)
   restartReader(getVFOFrequency());
 }
 
-//	we use a static large buffer, rather than trying to allocate a buffer on the stack
+//  we use a static large buffer, rather than trying to allocate a buffer on the stack
 static std::array<std::complex<i8>, 32 * 32768> buffer;
 
 static i32 callback(hackrf_transfer * transfer)
@@ -321,8 +314,8 @@ void HackRfHandler::stopReader()
   mRunning.store(false);
 }
 
-//	The brave old getSamples. For the hackrf, we get
-//	size still in I/Q pairs
+//  The brave old getSamples. For the hackrf, we get
+//  size still in I/Q pairs
 i32 HackRfHandler::getSamples(cf32 * V, i32 size)
 {
   auto * const temp = make_vla(std::complex<i8>, size);

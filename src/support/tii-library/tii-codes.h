@@ -30,9 +30,7 @@
 #ifndef  TII_HANDLER_H
 #define  TII_HANDLER_H
 
-#include <cstdint>
 #include <QString>
-#include <QSettings>
 #include <QLibrary>
 #include <QFile>
 #include "dab-constants.h"
@@ -82,7 +80,6 @@ public:
   const STiiDataEntry * get_transmitter_data(const QString &iChannel, u16 iEid, u8 iMainId, u8 iSubId);
   [[nodiscard]] f32 distance(f32, f32, f32, f32) const;
   f32 corner(f32, f32, f32, f32) const;
-  bool is_black(u16, u8, u8);
   bool is_valid() const;
   void loadTable(const QString & iTiiFileName);
 
