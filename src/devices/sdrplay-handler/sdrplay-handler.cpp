@@ -66,23 +66,21 @@ std::string errorMessage(i32 errorCode)
   return "";
 }
 
-SdrPlayHandler::SdrPlayHandler(QSettings * /*s*/, const QString & recorderVersion)
+SdrPlayHandler::SdrPlayHandler(QSettings *s, const QString & recorderVersion)
   : p_I_Buffer(sRingBufferFactoryCmplx16.get_ringbuffer(RingBufferFactory<ci16>::EId::DeviceSampleBuffer).get())
   , myFrame(nullptr)
 {
   this->recorderVersion = recorderVersion;
+  this->sdrplaySettings = s;
 
   setupUi(&myFrame);
 
   Settings::SdrPlayV3::posAndSize.read_widget_geometry(&myFrame, 210, 278, true);
 
   myFrame.setWindowFlag(Qt::Tool, true); // does not generate a task bar icon
-  myFrame.show();
-
-  slot_overload_detected(false);
+  //myFrame.show();
 
   antennaSelector->hide();
-
   xmlDumper = nullptr;
   dumping.store(false);
 
@@ -120,7 +118,9 @@ SdrPlayHandler::SdrPlayHandler(QSettings * /*s*/, const QString & recorderVersio
   connect(notch_selector, &QCheckBox::stateChanged, this, &SdrPlayHandler::set_notch);
 #endif
   connect(antennaSelector, &QComboBox::textActivated, this, &SdrPlayHandler::set_selectAntenna);
+  connect(this, SIGNAL(new_lnaValue(int)), lnaGainSetting, SLOT(setValue(int)));
 
+  save_lnaSettings = true;
   vfoFrequency = MHz (220);
   failFlag.store(false);
   successFlag.store(false);
@@ -174,6 +174,12 @@ bool SdrPlayHandler::restartReader(i32 newFreq)
   {
     return true;
   }
+  slot_overload_detected(false);
+  if (save_lnaSettings)
+  {
+    update_lnaSettings(newFreq / MHz(1));
+    set_lnagainReduction(lnaGainSetting->value());
+  }
   vfoFrequency = newFreq;
   return messageHandler(&r);
 }
@@ -186,6 +192,8 @@ void SdrPlayHandler::stopReader()
   {
     return;
   }
+  if (save_lnaSettings)
+    record_lnaSettings(vfoFrequency / MHz(1));
   messageHandler(&r);
   resetBuffer();
 }
@@ -334,7 +342,6 @@ void SdrPlayHandler::set_antennaSelect(i32 n)
 {
   if (n > 0)
   {
-    antennaSelector->addItem("Antenna B");
     if (n > 1)
     {
       antennaSelector->addItem("Antenna C");
@@ -450,7 +457,7 @@ static void EventCallback(sdrplay_api_EventT eventId, sdrplay_api_TunerSelectT t
   (void)tuner;
   switch (eventId)
   {
-    case sdrplay_api_GainChange: emit p->signal_tuner_gain(params->gainParams.currGain, params->gainParams.lnaGRdB);
+    case sdrplay_api_GainChange: emit p->signal_tuner_gain(params->gainParams);
       break;
 
     case sdrplay_api_PowerOverloadChange: p->update_PowerOverload(params);
@@ -637,7 +644,6 @@ void SdrPlayHandler::run()
   {
     goto closeAPI;
   }
-
   threadRuns.store(true);       // it seems we can do some work
   successFlag.store(true);
   while (threadRuns.load())
@@ -931,13 +937,59 @@ void SdrPlayHandler::slot_overload_detected(bool iOvlDetected)
   }
 }
 
-void SdrPlayHandler::slot_tuner_gain(f64 gain, i32 g)
+void SdrPlayHandler::slot_tuner_gain(sdrplay_api_GainCbParamT params)
 {
-  tunerGain->setText(QString::number(gain, 'f', 0) + " dB");
-  lnaGRdBDisplay->display(g);
+  tunerGain->setText(QString::number(params.currGain, 'f', 0) + " dB");
+  lnaGRdBDisplay->display((i32)params.lnaGRdB);
+  if (agcControl->isChecked())
+    GRdBSelector->setValue(params.gRdB);
 }
 
 bool SdrPlayHandler::hasDump()
 {
   return true;
 }
+
+/////////////////////////////////////////////////////////////////////////
+//Experimental
+/////////////////////////////////////////////////////////////////////////
+//
+//  the frequency (the MHz component) is used as key
+//
+void SdrPlayHandler::record_lnaSettings(i32 freq)
+{
+  i32 lnaState = lnaGainSetting->value();
+  QString theValue = QString::number(lnaState);
+
+  sdrplaySettings->beginGroup("SdrPlayV3");
+  sdrplaySettings->setValue(QString::number (freq), theValue);
+  sdrplaySettings->endGroup();
+}
+
+void SdrPlayHandler::update_lnaSettings(i32 freq)
+{
+  i32 lnaState;
+  QString theValue = "";
+
+  sdrplaySettings->beginGroup("SdrPlayV3");
+  theValue = sdrplaySettings->value(QString::number(freq), "").toString();
+  sdrplaySettings->endGroup();
+
+  if (theValue == QString(""))
+    return;      // or set some defaults here
+
+  if (theValue.size() < 1)    // should not happen
+    return;
+
+  lnaState = theValue.toInt();
+  int lnaMax = theRsp->lnaStates(freq * 1000000) - 1;
+  if (lnaState > lnaMax)
+    lnaState = lnaMax;
+
+  lnaGainSetting->blockSignals(true);
+  new_lnaValue(lnaState);
+  while (lnaGainSetting->value() != lnaState)
+    usleep(1000);
+  lnaGainSetting->blockSignals(false);
+}
+

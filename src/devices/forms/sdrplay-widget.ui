@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>210</width>
+    <width>150</width>
     <height>255</height>
    </rect>
   </property>
@@ -33,8 +33,7 @@
       <widget class="QLCDNumber" name="api_version">
        <property name="toolTip">
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Version of the SDRplay library detected.
-         &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
-        </string>
+         &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="lineWidth">
         <number>0</number>
@@ -117,6 +116,9 @@
      </item>
      <item row="3" column="1">
       <widget class="QSpinBox" name="GRdBSelector">
+       <property name="suffix">
+        <string> dB</string>
+       </property>
        <property name="minimum">
         <number>20</number>
        </property>
@@ -156,6 +158,78 @@
       </widget>
      </item>
      <item row="5" column="0">
+      <widget class="QLabel" name="lnaGRdBLabel">
+       <property name="font">
+        <font>
+         <family>DejaVu Sans Mono</family>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>LNA Gain Red.</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="1">
+      <layout class="QHBoxLayout" name="horizontalLayout_4">
+       <item>
+        <widget class="QLCDNumber" name="lnaGRdBDisplay">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The display shows the gain reduction in the LNA of the device.
+           &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="lineWidth">
+          <number>0</number>
+         </property>
+         <property name="digitCount">
+          <number>3</number>
+         </property>
+         <property name="segmentStyle">
+          <enum>QLCDNumber::Flat</enum>
+         </property>
+        </widget>
+       </item>
+
+       <item>
+        <widget class="QLabel" name="label_dB">
+         <property name="text">
+          <string>dB</string>
+         </property>
+        </widget>
+       </item>
+       
+      </layout>
+     </item>
+     <item row="6" column="0">
+      <widget class="QLabel" name="label_4">
+       <property name="font">
+        <font>
+         <family>DejaVu Sans Mono</family>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Tuner gain</string>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="1">
+      <layout class="QHBoxLayout" name="horizontalLayout_4">
+       <item>
+        <widget class="QLabel" name="tunerGain">
+         <property name="text">
+          <string>unknown</string>
+         </property>
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Total tuner gain (LNA+Mixer+IF).
+           &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
+          </string>
+         </property>
+        </widget>
+       </item>
+       <item>
       <widget class="QLabel" name="lblOverload">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
@@ -165,13 +239,13 @@
        </property>
        <property name="minimumSize">
         <size>
-         <width>70</width>
+         <width>60</width>
          <height>0</height>
         </size>
        </property>
        <property name="maximumSize">
         <size>
-         <width>70</width>
+         <width>60</width>
          <height>16777215</height>
         </size>
        </property>
@@ -193,49 +267,9 @@
         <set>Qt::AlignCenter</set>
        </property>
       </widget>
-     </item>
-     <item row="5" column="1">
-      <widget class="QLCDNumber" name="lnaGRdBDisplay">
-       <property name="toolTip">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The display shows the gain reduction in the LNA of the device.
-         &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-       </property>
-       <property name="lineWidth">
-        <number>0</number>
-       </property>
-       <property name="digitCount">
-        <number>3</number>
-       </property>
-       <property name="segmentStyle">
-        <enum>QLCDNumber::Flat</enum>
-       </property>
-      </widget>
-     </item>
-     <item row="6" column="0">
-      <widget class="QLabel" name="label_4">
-       <property name="font">
-        <font>
-         <family>DejaVu Sans Mono</family>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="text">
-        <string>Tuner gain</string>
-       </property>
-      </widget>
-     </item>
-     <item row="6" column="1">
-      <widget class="QLabel" name="tunerGain">
-       <property name="text">
-        <string>unknown</string>
-       </property>
-       <property name="toolTip">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Total tuner gain (LNA+Mixer+IF).
-         &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
-        </string>
-       </property>
-      </widget>
+
+       </item>
+      </layout>
      </item>
     </layout>
    </item>
@@ -302,7 +336,7 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <spacer name="horizontalSpacer">
+      <spacer name="horizontalSpacer_2">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
        </property>
@@ -338,6 +372,11 @@
        <item>
         <property name="text">
          <string>Antenna A</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Antenna B</string>
         </property>
        </item>
       </widget>

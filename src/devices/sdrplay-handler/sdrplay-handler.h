@@ -53,7 +53,7 @@ class SdrPlayHandler final : public QThread, public IDeviceHandler, public Ui_sd
 {
 Q_OBJECT
 public:
-  SdrPlayHandler(QSettings *, const QString &);
+  SdrPlayHandler(QSettings *s, const QString &);
   ~SdrPlayHandler() override;
 
   void setVFOFrequency(i32) override;
@@ -124,6 +124,7 @@ public:
 private:
   QFrame myFrame;
   QLibrary * phandle;
+  QSettings * sdrplaySettings;
 
   // tomneda: was at 14bit but it seems the whole 16bits are used in the callback function (for the RSPdx)
   static constexpr i16 nrBits = 16;
@@ -132,6 +133,7 @@ private:
   void set_serial(const QString &);
   void set_apiVersion(f32);
   bool setup_xmlDump();
+  bool save_lnaSettings;
 
 private slots:
   void set_ifgainReduction(i32);
@@ -142,15 +144,20 @@ private slots:
   void set_biasT(i32);
   void set_notch(i32);
   void slot_overload_detected(bool);
-  void slot_tuner_gain(f64, i32);
+  void slot_tuner_gain(sdrplay_api_GainCbParamT params);
+  void record_lnaSettings(i32 freq);
+  void update_lnaSettings(i32 freq);
+
 public slots:
   void set_lnabounds(i32, i32);
   void set_antennaSelect(i32);
   void show_lnaGain(i32);
+
 signals:
   void set_antennaSelect_signal(bool);
   void signal_overload_detected(bool);
-  void signal_tuner_gain(f64, i32);
+  void signal_tuner_gain(sdrplay_api_GainCbParamT params);
+  void new_lnaValue(i32);
 };
 
 #endif
