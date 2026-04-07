@@ -20,7 +20,6 @@
       <widget class="QLabel" name="deviceLabel">
        <property name="font">
         <font>
-         <weight>75</weight>
          <bold>true</bold>
         </font>
        </property>
@@ -39,7 +38,7 @@
         <number>0</number>
        </property>
        <property name="segmentStyle">
-        <enum>QLCDNumber::Flat</enum>
+        <enum>QLCDNumber::SegmentStyle::Flat</enum>
        </property>
       </widget>
      </item>
@@ -47,7 +46,6 @@
       <widget class="QLabel" name="label_3">
        <property name="font">
         <font>
-         <weight>75</weight>
          <bold>true</bold>
         </font>
        </property>
@@ -74,7 +72,6 @@
        <property name="font">
         <font>
          <family>DejaVu Sans Mono</family>
-         <weight>75</weight>
          <italic>true</italic>
          <bold>true</bold>
         </font>
@@ -92,10 +89,10 @@
         </string>
        </property>
        <property name="minimum">
-        <double>-150.0</double>
+        <double>-150.000000000000000</double>
        </property>
        <property name="maximum">
-        <double>150.0</double>
+        <double>150.000000000000000</double>
        </property>
       </widget>
      </item>
@@ -104,7 +101,6 @@
        <property name="font">
         <font>
          <family>DejaVu Sans Mono</family>
-         <weight>75</weight>
          <italic>true</italic>
          <bold>true</bold>
         </font>
@@ -132,7 +128,6 @@
        <property name="font">
         <font>
          <family>DejaVu Sans Mono</family>
-         <weight>75</weight>
          <italic>true</italic>
          <bold>true</bold>
         </font>
@@ -162,7 +157,6 @@
        <property name="font">
         <font>
          <family>DejaVu Sans Mono</family>
-         <weight>75</weight>
          <bold>true</bold>
         </font>
        </property>
@@ -186,11 +180,10 @@
           <number>3</number>
          </property>
          <property name="segmentStyle">
-          <enum>QLCDNumber::Flat</enum>
+          <enum>QLCDNumber::SegmentStyle::Flat</enum>
          </property>
         </widget>
        </item>
-
        <item>
         <widget class="QLabel" name="label_dB">
          <property name="text">
@@ -198,7 +191,6 @@
          </property>
         </widget>
        </item>
-       
       </layout>
      </item>
      <item row="6" column="0">
@@ -206,7 +198,6 @@
        <property name="font">
         <font>
          <family>DejaVu Sans Mono</family>
-         <weight>75</weight>
          <bold>true</bold>
         </font>
        </property>
@@ -216,70 +207,67 @@
       </widget>
      </item>
      <item row="6" column="1">
-      <layout class="QHBoxLayout" name="horizontalLayout_4">
+      <layout class="QHBoxLayout" name="horizontalLayout_5">
        <item>
         <widget class="QLabel" name="tunerGain">
-         <property name="text">
-          <string>unknown</string>
-         </property>
          <property name="toolTip">
           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Total tuner gain (LNA+Mixer+IF).
            &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
           </string>
          </property>
+         <property name="text">
+          <string>unknown</string>
+         </property>
         </widget>
        </item>
        <item>
-      <widget class="QLabel" name="lblOverload">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>60</width>
-         <height>0</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>60</width>
-         <height>16777215</height>
-        </size>
-       </property>
-       <property name="font">
-        <font>
-         <weight>75</weight>
-         <bold>true</bold>
-        </font>
-       </property>
-       <property name="toolTip">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Shows the ADC overload condition. Increase the attenuation to avoid
+        <widget class="QLabel" name="lblOverload">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>60</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>60</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Shows the ADC overload condition. Increase the attenuation to avoid
          this.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
         </string>
-       </property>
-       <property name="text">
-        <string>Overload</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignCenter</set>
-       </property>
-      </widget>
-
+         </property>
+         <property name="text">
+          <string>Overload</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignmentFlag::AlignCenter</set>
+         </property>
+        </widget>
        </item>
       </layout>
      </item>
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_4">
+    <layout class="QHBoxLayout" name="horizontalLayout_6">
      <item>
       <widget class="QCheckBox" name="biasT_selector">
        <property name="font">
         <font>
-         <weight>75</weight>
          <bold>true</bold>
         </font>
        </property>
@@ -298,7 +286,6 @@
        <property name="font">
         <font>
          <family>DejaVu Sans Mono</family>
-         <weight>75</weight>
          <italic>true</italic>
          <bold>true</bold>
         </font>
@@ -317,7 +304,6 @@
       <widget class="QCheckBox" name="notch_selector">
        <property name="font">
         <font>
-         <weight>75</weight>
          <bold>true</bold>
         </font>
        </property>
@@ -338,7 +324,7 @@
      <item>
       <spacer name="horizontalSpacer_2">
        <property name="orientation">
-        <enum>Qt::Horizontal</enum>
+        <enum>Qt::Orientation::Horizontal</enum>
        </property>
        <property name="sizeHint" stdset="0">
         <size>
@@ -359,7 +345,6 @@
        <property name="font">
         <font>
          <family>DejaVu Sans Mono</family>
-         <weight>75</weight>
          <italic>true</italic>
          <bold>true</bold>
         </font>
