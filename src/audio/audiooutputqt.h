@@ -68,6 +68,8 @@ private:
   SAudioFifo * mpRestartFifo = nullptr;
   f32 mLinearVolume = 1.0f;
   QAudioFormat mAudioFormat;
+  bool mRestartPending = false;
+  bool mStopPending = false;
 
   void _do_stop() const;
   void _do_restart(SAudioFifo * buffer);
@@ -82,6 +84,8 @@ public slots:
   void slot_set_audio_device(const QByteArray & iDeviceId) override;
 
 private slots:
+  void _slot_restart_deferred();
+  void _slot_stop_deferred();
   void _slot_state_changed(QAudio::State iNewState);
   void _slot_update_audio_devices();
 };

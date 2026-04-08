@@ -189,9 +189,30 @@ void AudioOutputQt::_do_stop() const
 void AudioOutputQt::_do_restart(SAudioFifo * buffer)
 {
   mpRestartFifo = nullptr;
-  mpAudioSink->stop();
+
+  if (mpAudioSink != nullptr)
+  {
+    mpAudioSink->stop();
+  }
+
   emit signal_audio_output_restart();
   slot_start(buffer);
+}
+
+void AudioOutputQt::_slot_restart_deferred()
+{
+  mRestartPending = false;
+
+  if (mpCurrentFifo != nullptr)
+  {
+    _do_restart(mpCurrentFifo);
+  }
+}
+
+void AudioOutputQt::_slot_stop_deferred()
+{
+  mStopPending = false;
+  _do_stop();
 }
 
 void AudioOutputQt::_slot_state_changed(const QAudio::State iNewState)
@@ -210,21 +231,20 @@ void AudioOutputQt::_slot_state_changed(const QAudio::State iNewState)
       if (mpRestartFifo != nullptr)
       {
         // restart was requested
-        QTimer::singleShot(0, this, [this]()
+        if (!mRestartPending)
         {
-          if (mpRestartFifo != nullptr)
-          {
-            _do_restart(mpRestartFifo);
-          }
-        });
+          mRestartPending = true;
+          QTimer::singleShot(0, this, &AudioOutputQt::_slot_restart_deferred);
+        }
       }
       else
       {
         // stop was requested
-        QTimer::singleShot(0, this, [this]()
+        if (!mStopPending)
         {
-          _do_stop();
-        });
+          mStopPending = true;
+          QTimer::singleShot(0, this, &AudioOutputQt::_slot_stop_deferred);
+        }
       }
     }
     else
@@ -232,27 +252,21 @@ void AudioOutputQt::_slot_state_changed(const QAudio::State iNewState)
       if (mpAudioSink->error() == QAudio::Error::NoError)
       {
         qCWarning(sLogAudioOutput) << "Audio going to Idle state unexpectedly, trying to restart...";
-        QTimer::singleShot(0, this, [this]() {
-          if (mpCurrentFifo != nullptr)
-          {
-            _do_restart(mpCurrentFifo);
-          }
-        });
       }
-      else // some error -> doing stop
+      else
       {
         qCWarning(sLogAudioOutput) << "Audio going to Idle state unexpectedly, trying to restart, error code:" << mpAudioSink->error();
-        QTimer::singleShot(0, this, [this]() {
-          if (mpCurrentFifo != nullptr)
-          {
-            _do_restart(mpCurrentFifo);
-            // _do_stop();
-          }
-          emit signal_audio_output_error();
-        });
+        emit signal_audio_output_error();
+      }
+
+      if (!mRestartPending)
+      {
+        mRestartPending = true;
+        QTimer::singleShot(0, this, &AudioOutputQt::_slot_restart_deferred);
       }
     }
     break;
+
   case QAudio::StoppedState:
     // Stopped for other reasons
     break;
