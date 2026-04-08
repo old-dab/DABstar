@@ -38,6 +38,7 @@
 #include <QAudioSink>
 #include <QAudioDevice>
 #include <QMediaDevices>
+#include <QTimer>
 
 // Q_LOGGING_CATEGORY(sLogAudioOutput, "AudioOutput", QtDebugMsg)
 Q_LOGGING_CATEGORY(sLogAudioOutput, "AudioOutput", QtWarningMsg)
@@ -209,12 +210,21 @@ void AudioOutputQt::_slot_state_changed(const QAudio::State iNewState)
       if (mpRestartFifo != nullptr)
       {
         // restart was requested
-        _do_restart(mpRestartFifo);
+        QTimer::singleShot(0, this, [this]()
+        {
+          if (mpRestartFifo != nullptr)
+          {
+            _do_restart(mpRestartFifo);
+          }
+        });
       }
       else
       {
         // stop was requested
-        _do_stop();
+        QTimer::singleShot(0, this, [this]()
+        {
+          _do_stop();
+        });
       }
     }
     else
@@ -222,14 +232,24 @@ void AudioOutputQt::_slot_state_changed(const QAudio::State iNewState)
       if (mpAudioSink->error() == QAudio::Error::NoError)
       {
         qCWarning(sLogAudioOutput) << "Audio going to Idle state unexpectedly, trying to restart...";
-        _do_restart(mpCurrentFifo);
+        QTimer::singleShot(0, this, [this]() {
+          if (mpCurrentFifo != nullptr)
+          {
+            _do_restart(mpCurrentFifo);
+          }
+        });
       }
       else // some error -> doing stop
       {
         qCWarning(sLogAudioOutput) << "Audio going to Idle state unexpectedly, trying to restart, error code:" << mpAudioSink->error();
-        _do_restart(mpCurrentFifo);
-        // _do_stop();
-        emit signal_audio_output_error();
+        QTimer::singleShot(0, this, [this]() {
+          if (mpCurrentFifo != nullptr)
+          {
+            _do_restart(mpCurrentFifo);
+            // _do_stop();
+          }
+          emit signal_audio_output_error();
+        });
       }
     }
     break;
