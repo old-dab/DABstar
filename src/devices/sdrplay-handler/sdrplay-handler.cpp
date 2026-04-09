@@ -174,31 +174,32 @@ bool SdrPlayHandler::restartReader(i32 newFreq)
   {
     return true;
   }
+  vfoFrequency = newFreq;
+  messageHandler(&r);
+
   slot_overload_detected(false);
   if (save_lnaSettings)
   {
     update_lnaSettings(newFreq / MHz(1));
-    set_lnagainReduction(lnaGainSetting->value());
+    set_lnagainReduction(lnaState);
   }
-  vfoFrequency = newFreq;
-  return messageHandler(&r);
+  return true;
 }
 
 void SdrPlayHandler::stopReader()
 {
+  if (save_lnaSettings)
+    record_lnaSettings(vfoFrequency / MHz(1));
   stopRequest r;
   stopDumping();
   if (!receiverRuns.load())
   {
     return;
   }
-  if (save_lnaSettings)
-    record_lnaSettings(vfoFrequency / MHz(1));
   messageHandler(&r);
   resetBuffer();
 }
 
-//
 i32 SdrPlayHandler::getSamples(cf32 * V, i32 size)
 {
   static constexpr f32 denominator = (f32)(1 << (nrBits-1));
@@ -242,7 +243,6 @@ QString SdrPlayHandler::deviceName()
 //  actual interface into its own thread.
 //  Communication with that thread is synchronous!
 //
-
 void SdrPlayHandler::set_lnabounds(i32 low, i32 high)
 {
   lnaGainSetting->setRange(low, high);
@@ -968,11 +968,8 @@ void SdrPlayHandler::record_lnaSettings(i32 freq)
 
 void SdrPlayHandler::update_lnaSettings(i32 freq)
 {
-  i32 lnaState;
-  QString theValue = "";
-
   sdrplaySettings->beginGroup("SdrPlayV3");
-  theValue = sdrplaySettings->value(QString::number(freq), "").toString();
+  QString theValue = sdrplaySettings->value(QString::number(freq), "").toString();
   sdrplaySettings->endGroup();
 
   if (theValue == QString(""))
@@ -981,15 +978,12 @@ void SdrPlayHandler::update_lnaSettings(i32 freq)
   if (theValue.size() < 1)    // should not happen
     return;
 
-  lnaState = theValue.toInt();
-  int lnaMax = theRsp->lnaStates(freq * 1000000) - 1;
-  if (lnaState > lnaMax)
-    lnaState = lnaMax;
+  i32 lna = theValue.toInt();
+  i32 lnaMax = theRsp->lnaStates(freq * 1000000) - 1;
+  if (lna > lnaMax)
+    lna = lnaMax;
+  lnaState = lna;
 
-  lnaGainSetting->blockSignals(true);
-  new_lnaValue(lnaState);
-  while (lnaGainSetting->value() != lnaState)
-    usleep(1000);
-  lnaGainSetting->blockSignals(false);
+  emit new_lnaValue(lnaState);
 }
 

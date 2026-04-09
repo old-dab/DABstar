@@ -134,6 +134,8 @@ private:
   void set_apiVersion(f32);
   bool setup_xmlDump();
   bool save_lnaSettings;
+  void record_lnaSettings(i32 freq);
+  void update_lnaSettings(i32 freq);
 
 private slots:
   void set_ifgainReduction(i32);
@@ -145,8 +147,6 @@ private slots:
   void set_notch(i32);
   void slot_overload_detected(bool);
   void slot_tuner_gain(sdrplay_api_GainCbParamT params);
-  void record_lnaSettings(i32 freq);
-  void update_lnaSettings(i32 freq);
 
 public slots:
   void set_lnabounds(i32, i32);
