@@ -104,6 +104,8 @@ DabRadio::DabRadio(QSettings * const ipSettings, const QString & iFileNameDb, co
   mpServiceListHandler.reset(new ServiceListHandler(iFileNameDb, ui->tblServiceList));
   mpTechDataWidget.reset(new TechData(this, mpTechDataBuffer));
 
+  qDebug("Using Qt version: " QT_VERSION_STR);
+
   _initialize_ui_buttons();
   _initialize_status_info();
   _initialize_dynamic_label();
