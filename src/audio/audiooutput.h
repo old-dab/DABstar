@@ -57,6 +57,6 @@ public slots:
   virtual void slot_set_audio_device(const QByteArray & deviceId) = 0;
 
 signals:
-  void signal_audio_devices_list(QList<QAudioDevice> deviceList);
+  void signal_audio_devices_list(const QList<QAudioDevice> & deviceList);
   void signal_audio_device_changed(const QByteArray & id);
 };

@@ -44,8 +44,8 @@ Q_LOGGING_CATEGORY(sLogAudioOutput, "AudioOutput", QtWarningMsg)
 
 AudioOutputQt::AudioOutputQt()
 {
-  mpIoDevice.reset(new AudioIODevice());
-  mpMediaDevices.reset(new QMediaDevices());
+  mpIoDevice.reset(new AudioIODevice(this));      // this "this" solves issue https://github.com/tomneda/DABstar/issues/111
+  mpMediaDevices.reset(new QMediaDevices(this));
   connect(mpMediaDevices.get(), &QMediaDevices::audioOutputsChanged, this, &AudioOutputQt::_slot_update_audio_devices);
 }
 
@@ -233,7 +233,7 @@ void AudioOutputQt::_slot_state_changed(const QAudio::State iNewState)
         if (!mRestartPending)
         {
           mRestartPending = true;
-          QTimer::singleShot(1, this, &AudioOutputQt::_slot_restart_deferred);
+          QTimer::singleShot(0, this, &AudioOutputQt::_slot_restart_deferred);
         }
       }
       else
@@ -242,7 +242,7 @@ void AudioOutputQt::_slot_state_changed(const QAudio::State iNewState)
         if (!mStopPending)
         {
           mStopPending = true;
-          QTimer::singleShot(1, this, &AudioOutputQt::_slot_stop_deferred);
+          QTimer::singleShot(0, this, &AudioOutputQt::_slot_stop_deferred);
         }
       }
     }
@@ -260,7 +260,7 @@ void AudioOutputQt::_slot_state_changed(const QAudio::State iNewState)
       if (!mRestartPending)
       {
         mRestartPending = true;
-        QTimer::singleShot(1, this, &AudioOutputQt::_slot_restart_deferred);
+        QTimer::singleShot(0, this, &AudioOutputQt::_slot_restart_deferred);
       }
     }
     break;

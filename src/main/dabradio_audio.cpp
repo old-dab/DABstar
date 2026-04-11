@@ -12,6 +12,11 @@
 void DabRadio::_initialize_audio_output()
 {
   mpAudioOutput = new AudioOutputQt;
+  mAudioOutputThread = new QThread(this);
+  mAudioOutputThread->setObjectName("audioOutThr");
+  mpAudioOutput->moveToThread(mAudioOutputThread);
+
+  // do connection after thread move (but seems not to be important)
   connect(mpAudioOutput, &IAudioOutput::signal_audio_devices_list, this, &DabRadio::_slot_load_audio_device_list);
   connect(this, &DabRadio::signal_start_audio, mpAudioOutput, &IAudioOutput::slot_start, Qt::QueuedConnection);
   connect(this, &DabRadio::signal_switch_audio, mpAudioOutput, &IAudioOutput::slot_restart, Qt::QueuedConnection);
@@ -25,9 +30,6 @@ void DabRadio::_initialize_audio_output()
 
   Settings::Main::sliderVolume.register_widget_and_update_ui_from_setting(ui->sliderVolume, 100); // register after connection then mpAudioOutput get informed immediately
 
-  mAudioOutputThread = new QThread(this);
-  mAudioOutputThread->setObjectName("audioOutThr");
-  mpAudioOutput->moveToThread(mAudioOutputThread);
   connect(mAudioOutputThread, &QThread::finished, mpAudioOutput, &QObject::deleteLater);
   mAudioOutputThread->start();
 
