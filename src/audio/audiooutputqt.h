@@ -30,21 +30,17 @@
  * SOFTWARE.
  */
 
-#ifndef AUDIOOUTPUTQT_H
-#define AUDIOOUTPUTQT_H
+#pragma once
 
 #include "audiooutput.h"
 #include "audiofifo.h"
 #include "glob_defs.h"
-#include <QObject>
 #include <QIODevice>
 #include <QTimer>
 
 class AudioIODevice;
 class QAudioSink;
 class QMediaDevices;
-class DabRadio;
-
 
 class AudioOutputQt final : public IAudioOutput
 {
@@ -90,4 +86,3 @@ private slots:
   void _slot_update_audio_devices();
 };
 
-#endif // AUDIOOUTPUTQT_H

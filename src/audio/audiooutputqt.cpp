@@ -32,7 +32,6 @@
 
 #include "audiooutputqt.h"
 #include "audioiodevice.h"
-#include <QDebug>
 #include <QLoggingCategory>
 #include <QThread>
 #include <QAudioSink>
@@ -111,11 +110,12 @@ void AudioOutputQt::slot_restart(SAudioFifo * iBuffer)
       // delay stop until audio is muted
       mpRestartFifo = iBuffer;
       mpIoDevice->stop();
-      return;
     }
-
-    // were are already muted - doRestart now
-    _do_restart(iBuffer);
+    else
+    {
+      // were are already muted - doRestart now
+      _do_restart(iBuffer);
+    }
   }
 }
 
@@ -195,7 +195,6 @@ void AudioOutputQt::_do_restart(SAudioFifo * buffer)
     mpAudioSink->stop();
   }
 
-  emit signal_audio_output_restart();
   slot_start(buffer);
 }
 
@@ -234,7 +233,7 @@ void AudioOutputQt::_slot_state_changed(const QAudio::State iNewState)
         if (!mRestartPending)
         {
           mRestartPending = true;
-          QTimer::singleShot(0, this, &AudioOutputQt::_slot_restart_deferred);
+          QTimer::singleShot(1, this, &AudioOutputQt::_slot_restart_deferred);
         }
       }
       else
@@ -243,7 +242,7 @@ void AudioOutputQt::_slot_state_changed(const QAudio::State iNewState)
         if (!mStopPending)
         {
           mStopPending = true;
-          QTimer::singleShot(0, this, &AudioOutputQt::_slot_stop_deferred);
+          QTimer::singleShot(1, this, &AudioOutputQt::_slot_stop_deferred);
         }
       }
     }
@@ -256,13 +255,12 @@ void AudioOutputQt::_slot_state_changed(const QAudio::State iNewState)
       else
       {
         qCWarning(sLogAudioOutput) << "Audio going to Idle state unexpectedly, trying to restart, error code:" << mpAudioSink->error();
-        emit signal_audio_output_error();
       }
 
       if (!mRestartPending)
       {
         mRestartPending = true;
-        QTimer::singleShot(0, this, &AudioOutputQt::_slot_restart_deferred);
+        QTimer::singleShot(1, this, &AudioOutputQt::_slot_restart_deferred);
       }
     }
     break;

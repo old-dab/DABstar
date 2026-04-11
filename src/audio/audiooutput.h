@@ -30,8 +30,7 @@
  * SOFTWARE.
  */
 
-#ifndef AUDIOOUTPUT_H
-#define AUDIOOUTPUT_H
+#pragma once
 
 #include <QObject>
 #include <QAudioDevice>
@@ -58,10 +57,6 @@ public slots:
   virtual void slot_set_audio_device(const QByteArray & deviceId) = 0;
 
 signals:
-  void signal_audio_output_error();
-  void signal_audio_output_restart();
   void signal_audio_devices_list(QList<QAudioDevice> deviceList);
   void signal_audio_device_changed(const QByteArray & id);
 };
-
-#endif // AUDIOOUTPUT_H

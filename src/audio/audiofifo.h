@@ -30,8 +30,7 @@
  * SOFTWARE.
  */
 
-#ifndef AUDIOFIFO_H
-#define AUDIOFIFO_H
+#pragma once
 
 #include "ringbuffer.h"
 
@@ -42,5 +41,3 @@ struct SAudioFifo
   RingBuffer<i16> * pRingbuffer;
   u32 sampleRate;
 };
-
-#endif // AUDIOFIFO_H
