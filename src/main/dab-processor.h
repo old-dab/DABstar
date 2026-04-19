@@ -174,7 +174,7 @@ signals:
   void signal_show_clock_err(f32);
   void signal_set_and_show_freq_corr_rf_Hz(i32);
   void signal_show_freq_corr_bb_Hz(i32);
-  void signal_linear_peak_level(f32);
+  void signal_linear_peak_and_rms_level(f32, f32);
 };
 
 #endif

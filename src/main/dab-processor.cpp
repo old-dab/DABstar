@@ -62,7 +62,7 @@ DabProcessor::DabProcessor(DabRadio * const mr, IDeviceHandler * const inputDevi
   connect(this, &DabProcessor::signal_show_clock_err, mpRadioInterface, &DabRadio::slot_show_clock_error);
   connect(this, &DabProcessor::signal_set_and_show_freq_corr_rf_Hz, mpRadioInterface, &DabRadio::slot_set_and_show_freq_corr_rf_Hz);
   connect(this, &DabProcessor::signal_show_freq_corr_bb_Hz, mpRadioInterface, &DabRadio::slot_show_freq_corr_bb_Hz);
-  connect(this, &DabProcessor::signal_linear_peak_level, mpRadioInterface, &DabRadio::slot_show_digital_peak_level);
+  connect(this, &DabProcessor::signal_linear_peak_and_rms_level, mpRadioInterface, &DabRadio::slot_show_digital_peak_and_rms_level);
 
   mBits.resize(c2K);
   mTiiDetector.reset();
@@ -258,8 +258,10 @@ void DabProcessor::_state_process_rest_of_frame(i32 & ioSampleCount)
     mClockOffsetTotalSamples = 0;
     mClockOffsetFrameCount = 0;
 
-    const f32 peakLevel = mSampleReader.get_linear_peak_level_and_clear();
-    emit signal_linear_peak_level(peakLevel);
+
+    f32 peakLevel, rmsLevel;
+    mSampleReader.get_linear_peak_level_and_clear(peakLevel, rmsLevel);
+    emit signal_linear_peak_and_rms_level(peakLevel, rmsLevel);
   }
 }
 

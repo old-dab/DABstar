@@ -29,9 +29,6 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#include <QSettings>
-#include <QColor>
-#include <QPen>
 #include "spectrum-viewer.h"
 #include "spectrum-scope.h"
 #include "waterfall-scope.h"
@@ -39,6 +36,9 @@
 #include "carrier-display.h"
 #include "iqdisplay.h"
 #include "setting-helper.h"
+#include <QSettings>
+#include <QColor>
+#include <algorithm>
 
 SpectrumViewer::SpectrumViewer(DabRadio * ipRI, QSettings * ipDabSettings, RingBuffer<cf32> * ipSpecBuffer,
                                RingBuffer<cf32> * ipIqBuffer, RingBuffer<f32> * ipCarrBuffer, RingBuffer<f32> * ipCorrBuffer) :
@@ -242,7 +242,7 @@ void SpectrumViewer::hide()
   myFrame.hide();
 }
 
-bool SpectrumViewer::is_hidden()
+bool SpectrumViewer::is_hidden() const
 {
   return myFrame.isHidden();
 }
@@ -268,7 +268,7 @@ void SpectrumViewer::show_iq(i32 iAmount, f32 /*iAvg*/)
   mpCarrierDisp->display_carrier_plot(mCarrValuesVec);
 }
 
-void SpectrumViewer::show_lcd_data(i32 /*iOfdmSymbNo*/, f32 iModQual, f32 iTestData1, f32 iTestData2, f32 iMeanSigmaSqFreqCorr, f32 iSNR)
+void SpectrumViewer::show_lcd_data(i32 /*iOfdmSymbNo*/, f32 iModQual, f32 iTestData1, f32 iTestData2, f32 iMeanSigmaSqFreqCorr, f32 iSNR) const
 {
   if (myFrame.isHidden())
   {
@@ -285,14 +285,14 @@ void SpectrumViewer::show_lcd_data(i32 /*iOfdmSymbNo*/, f32 iModQual, f32 iTestD
   // Very strange thing: the configuration of the ThermoWidget colors has to be done in the calling thread.
   if (!mThermoModQualConfigured)
   {
-    thermoModQual->setFillBrush(QBrush(QColor(229, 165, 10)));
-    mThermoPeakLevelConfigured = true;
+    thermoModQual->setColorMap(new QwtLinearColorMap(0x7777CC, 0x0000FF));
+    mThermoModQualConfigured = true;
   }
 
   thermoModQual->setValue(iModQual);
 }
 
-void SpectrumViewer::show_fic_ber(f32 ber)
+void SpectrumViewer::show_fic_ber(f32 ber) const
 {
   if (!myFrame.isHidden())
   {
@@ -300,27 +300,27 @@ void SpectrumViewer::show_fic_ber(f32 ber)
   }
 }
 
-void SpectrumViewer::show_nominal_frequency_MHz(f32 iFreqMHz)
+void SpectrumViewer::show_nominal_frequency_MHz(f32 iFreqMHz) const
 {
   lcdNomFrequency->display(QString("%1").arg(iFreqMHz, 0, 'f', 3));
 }
 
-void SpectrumViewer::show_freq_corr_rf_Hz(i32 iFreqCorrRF)
+void SpectrumViewer::show_freq_corr_rf_Hz(i32 iFreqCorrRF) const
 {
   lcdFreqCorrRF->display(iFreqCorrRF);
 }
 
-void SpectrumViewer::show_freq_corr_bb_Hz(i32 iFreqCorrBB)
+void SpectrumViewer::show_freq_corr_bb_Hz(i32 iFreqCorrBB) const
 {
   lcdFreqCorrBB->display(iFreqCorrBB);
 }
 
-void SpectrumViewer::show_clock_error(f32 iClockErr)
+void SpectrumViewer::show_clock_error(f32 iClockErr) const
 {
   lcdClockError->display(QString("%1").arg(iClockErr, 0, 'f', 2));
 }
 
-void SpectrumViewer::show_correlation(f32 threshold, const QVector<i32> & v, const std::vector<STiiResult> & iTr)
+void SpectrumViewer::show_correlation(f32 threshold, const QVector<i32> & v, const std::vector<STiiResult> & iTr) const
 {
   mpCorrelationViewer->showCorrelation(threshold, v, iTr);
 }
@@ -356,23 +356,32 @@ void SpectrumViewer::slot_update_settings()
   emit _slot_handle_cmb_iqscope(cmbIqScope->currentIndex());
 }
 
-void SpectrumViewer::show_digital_peak_level(f32 iDigLevel)
+void SpectrumViewer::show_digital_peak_and_rms_level(const f32 iDigLevelPeak, const f32 iDigLevelRms) const
 {
-  assert(iDigLevel >= 0.0f); // exact 0.0 is considered below.
+  assert(iDigLevelPeak >= 0.0f); // exact 0.0 is considered in log10_times_20
 
-  /* Very strange thing: the configuration of the ThermoWidget colors has to be done in the calling thread.
-   * As this routine is also called one time in the instance creation thread, the counter must at least count two times.
-   */
-  if (mThermoPeakLevelConfigured < 2)
-  {
-    thermoDigLevel->setFillBrush(QBrush(QColor(Qt::darkCyan)));
-    thermoDigLevel->setAlarmBrush(QBrush(QColor(Qt::red)));
-    ++mThermoPeakLevelConfigured;
-  }
+  const f32 valuedBRms  = log10_times_20(iDigLevelRms);
+  const f32 valuedBPeak = log10_times_20(iDigLevelPeak);
 
-  const f32 valuedB = 20.0f * std::log10(iDigLevel + 1.0e-6f);
+  const f64 minValue = thermoDigLevel->minimum();
+  const f64 maxValue = thermoDigLevel->maximum();
+  const f64 range = maxValue - minValue;
+  if (range <= 0) return; // should never happen
 
-  thermoDigLevel->setValue(valuedB);
+  f64 relPosRms  = (valuedBRms  - minValue) / range;
+  f64 relPosPeak = (valuedBPeak - minValue) / range;
+  const f64 relPos0dB  = (0 - minValue) / range;
+
+  relPosRms  = std::clamp<f64>(relPosRms,  0.0, relPos0dB);
+  relPosPeak = std::clamp<f64>(relPosPeak, 0.0, relPos0dB);
+  
+  QwtLinearColorMap * colorMap = new QwtLinearColorMap(0xEEBB00, Qt::black);
+  colorMap->setMode(QwtLinearColorMap::FixedColors);
+  colorMap->addColorStop(relPosRms, 0xEE8800);
+  colorMap->addColorStop(relPosPeak, 0xEE5500);
+  thermoDigLevel->setColorMap(colorMap);
+
+  thermoDigLevel->setValue(valuedBPeak);
 }
 
 void SpectrumViewer::set_spectrum_averaging_rate(SpectrumViewer::EAvrRate iAvrRate)

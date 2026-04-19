@@ -417,11 +417,11 @@ public slots:
   void slot_handle_mot_saving_selector(i32);
   void slot_show_mot_handling();
   void slot_show_correlation(f32, const QVector<i32> & v);
-  void slot_show_spectrum(i32);
-  void slot_show_cir();
-  void slot_show_iq(i32, f32);
+  void slot_show_spectrum(i32) const;
+  void slot_show_cir() const;
+  void slot_show_iq(i32, f32) const;
   void slot_show_lcd_data(const OfdmDecoder::SLcdData *);
-  void slot_show_digital_peak_level(f32 iPeakLevel);
+  void slot_show_digital_peak_and_rms_level(f32 iLevelPeak, f32 iLevelRms) const;
   void slot_show_rs_corrections(i32, i32);
   void slot_show_tii(const std::vector<STiiResult> & iTr);
   void slot_fib_time(const IFibDecoder::SUtcTimeSet & fibTimeInfo);

@@ -890,7 +890,7 @@ void DabRadio::slot_show_tii(const std::vector<STiiResult> & iTiiList)
   }
 }
 
-void DabRadio::slot_show_spectrum(i32 /*amount*/)
+void DabRadio::slot_show_spectrum(i32 /*amount*/) const
 {
   if (!mIsRunning.load())
   {
@@ -900,7 +900,7 @@ void DabRadio::slot_show_spectrum(i32 /*amount*/)
   mpSpectrumViewer->show_spectrum(mpInputDevice->getVFOFrequency());
 }
 
-void DabRadio::slot_show_cir()
+void DabRadio::slot_show_cir() const
 {
   if (!mIsRunning.load() || mpCirViewer->is_hidden())
   {
@@ -910,7 +910,7 @@ void DabRadio::slot_show_cir()
   mpCirViewer->show_cir();
 }
 
-void DabRadio::slot_show_iq(i32 iAmount, f32 iAvg)
+void DabRadio::slot_show_iq(i32 iAmount, f32 iAvg) const
 {
   if (!mIsRunning.load())
   {
@@ -933,14 +933,14 @@ void DabRadio::slot_show_lcd_data(const OfdmDecoder::SLcdData * pQD)
   }
 }
 
-void DabRadio::slot_show_digital_peak_level(f32 iPeakLevel)
+void DabRadio::slot_show_digital_peak_and_rms_level(const f32 iLevelPeak, const f32 iLevelRms) const
 {
   if (!mIsRunning.load())
   {
     return;
   }
 
-  mpSpectrumViewer->show_digital_peak_level(iPeakLevel);
+  mpSpectrumViewer->show_digital_peak_and_rms_level(iLevelPeak, iLevelRms);
 }
 
 // called from the MP4 decoder

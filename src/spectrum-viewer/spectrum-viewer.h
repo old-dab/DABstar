@@ -83,19 +83,18 @@ public:
   ~SpectrumViewer() override;
 
   void show_spectrum(i32);
-  void show_correlation(f32 threshold, const QVector<i32> & v, const std::vector<STiiResult> & iTr);
-  void show_nominal_frequency_MHz(f32);
-  void show_freq_corr_rf_Hz(i32 iFreqCorrRF);
-  void show_freq_corr_bb_Hz(i32 iFreqCorrBB);
+  void show_correlation(f32 threshold, const QVector<i32> & v, const std::vector<STiiResult> & iTr) const;
+  void show_nominal_frequency_MHz(f32) const;
+  void show_freq_corr_rf_Hz(i32 iFreqCorrRF) const;
+  void show_freq_corr_bb_Hz(i32 iFreqCorrBB) const;
   void show_iq(i32, f32);
-  void show_lcd_data(i32, f32, f32, f32, f32, f32);
-  void show_fic_ber(f32 ber);
-  void show_clock_error(f32 e);
-  //void set_bit_depth(i16);
+  void show_lcd_data(i32, f32, f32, f32, f32, f32) const;
+  void show_fic_ber(f32 ber) const;
+  void show_clock_error(f32 e) const;
   void show();
   void hide();
-  bool is_hidden();
-  void show_digital_peak_level(f32);
+  bool is_hidden() const;
+  void show_digital_peak_and_rms_level(f32 iDigLevelPeak, f32 iDigLevelRms) const;
 
   enum class EAvrRate { SLOW, MEDIUM, FAST, DEFAULT = MEDIUM };
   void set_spectrum_averaging_rate(EAvrRate iAvrRate);
@@ -111,8 +110,7 @@ private:
   RingBuffer<f32> * const mpCorrelationBuffer;
   std::vector<cf32> mIqValuesVec;
   std::vector<f32> mCarrValuesVec;
-  u32 mThermoPeakLevelConfigured = 0;
-  bool mThermoModQualConfigured = false;
+  mutable bool mThermoModQualConfigured = false;
   SpecViewLimits<f64> mSpecViewLimits;
   f64 mAvrAlpha = 0.1;
 

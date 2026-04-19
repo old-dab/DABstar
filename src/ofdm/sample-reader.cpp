@@ -71,11 +71,6 @@ void SampleReader::setRunning(bool b)
   }
 }
 
-f32 SampleReader::get_sLevel() const
-{
-  return sLevel;
-}
-
 cf32 SampleReader::getSample(i32 phaseOffset)
 {
   getSamples(mSampleBuffer, 0, 1, phaseOffset, true); // show spectrum while scanning
@@ -298,11 +293,11 @@ void SampleReader::stop_dumping()
   dumpfilePointer.store(nullptr);
 }
 
-f32 SampleReader::get_linear_peak_level_and_clear()
+void SampleReader::get_linear_peak_level_and_clear(f32 & oLevelPeak, f32 & oLevelMean)
 {
-  const f32 peakLevelTemp = peakLevel;
-  peakLevel = -1.0e6;
-  return peakLevelTemp;
+  oLevelMean = sLevel;
+  oLevelPeak = peakLevel;
+  peakLevel = 0;
 }
 
 void SampleReader::set_dc_and_iq_correction(const bool iDoDcCorr, const bool iDoIqCorr)

@@ -57,8 +57,7 @@ public:
   ~SampleReader() override = default;
 
   void setRunning(bool b);
-  [[nodiscard]] f32 get_sLevel() const;
-  f32 get_linear_peak_level_and_clear();
+  void get_linear_peak_level_and_clear(f32 & oLevelPeak, f32 & oLevelMean);
   cf32 getSample(i32);
   void getSamples(TArrayTn & oV, const i32 iStartIdx, i32 iNoSamples, const i32 iFreqOffsetBBHz, bool iShowSpec);
   void startDumping(SNDFILE *);
@@ -66,7 +65,8 @@ public:
   void set_dc_and_iq_correction(bool iDoDcCorr, bool iDoIqCorr);
   void set_cir_buffer(RingBuffer<cf32> * iCirBuffer);
 
-  [[nodiscard]] inline cf32 get_dc_offset() const { return { meanI, meanQ }; }
+  [[nodiscard]] cf32 get_dc_offset() const { return { meanI, meanQ }; }
+  [[nodiscard]] f32 get_sLevel() const { return sLevel; }
 
 private:
   static constexpr u16 DUMP_SIZE = 4096;
