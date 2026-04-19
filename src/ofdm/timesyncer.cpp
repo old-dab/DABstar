@@ -30,6 +30,7 @@
  */
 #include  "timesyncer.h"
 #include  "sample-reader.h"
+#include  <QDebug>
 
 TimeSyncer::TimeSyncer(SampleReader * mr)
   : mpSampleReader(mr)
@@ -39,14 +40,13 @@ TimeSyncer::TimeSyncer(SampleReader * mr)
 TimeSyncer::EState TimeSyncer::read_samples_until_end_of_level_drop()
 {
   f32 cLevel = 0;
-  i32 counter = 0;
-  auto * const envBuffer = make_vla(f32, cSyncBufferSize);
+  std::array<f32, cSyncBufferSize> envBuffer; // init not necessary
   constexpr i32 syncBufferMask = cSyncBufferSize - 1;
-  i32 i;
 
   mSyncBufferIndex = 0;
 
-  for (i = 0; i < cLevelSearchSize; i++)
+  // collect level information for the first cLevelSearchSize in a buffer
+  for (i32 i = 0; i < cLevelSearchSize; i++)
   {
     const cf32 sample = mpSampleReader->getSample(0);
     envBuffer[mSyncBufferIndex] = std::abs(sample);
@@ -54,13 +54,13 @@ TimeSyncer::EState TimeSyncer::read_samples_until_end_of_level_drop()
     ++mSyncBufferIndex;
   }
 
-  //SyncOnNull:
-  counter = 0;
-  while (cLevel / cLevelSearchSize > 0.55 * mpSampleReader->get_sLevel())
+  // Search for a level drop in the signal within max TF samples
+  i32 counter = 0;
+  while (cLevel / cLevelSearchSize > 0.55f * mpSampleReader->get_sLevel())
   {
     const cf32 sample = mpSampleReader->getSample(0);
     envBuffer[mSyncBufferIndex] = std::abs(sample);
-    cLevel += envBuffer[mSyncBufferIndex] - envBuffer[(mSyncBufferIndex - cLevelSearchSize) & syncBufferMask];
+    cLevel += envBuffer[mSyncBufferIndex] - envBuffer[(u32)(mSyncBufferIndex - cLevelSearchSize) & syncBufferMask];
     mSyncBufferIndex = (mSyncBufferIndex + 1) & syncBufferMask;
     ++counter;
 
@@ -69,18 +69,14 @@ TimeSyncer::EState TimeSyncer::read_samples_until_end_of_level_drop()
       return EState::NO_DIP_FOUND;
     }
   }
-  /**
-    *     It seemed we found a dip that started app 65/100 * 50 samples earlier.
-    *     We now start looking for the end of the null period.
-    */
+
+  // We now start looking for the end of the null period.
   counter = 0;
-  //SyncOnEndNull:
-  while (cLevel / cLevelSearchSize < 0.75 * mpSampleReader->get_sLevel())
+  while (cLevel / cLevelSearchSize < 0.75f * mpSampleReader->get_sLevel())
   {
-    cf32 sample = mpSampleReader->getSample(0);
+    const cf32 sample = mpSampleReader->getSample(0);
     envBuffer[mSyncBufferIndex] = std::abs(sample);
-    //      update the levels
-    cLevel += envBuffer[mSyncBufferIndex] - envBuffer[(mSyncBufferIndex - cLevelSearchSize) & syncBufferMask];
+    cLevel += envBuffer[mSyncBufferIndex] - envBuffer[(u32)(mSyncBufferIndex - cLevelSearchSize) & syncBufferMask];
     mSyncBufferIndex = (mSyncBufferIndex + 1) & syncBufferMask;
     ++counter;
 
