@@ -46,23 +46,23 @@
 
 PhaseReference::PhaseReference(const DabRadio * const ipRadio, const ProcessParams * const ipParam)
   : PhaseTable()
-  , mFramesPerSecond(INPUT_RATE / cTF)
   , mpResponse(ipParam->responseBuffer)
-  , mCorrPeakValues(cTu)
 {
   mFftPlanFwd = fftwf_plan_dft_1d(cTu, (fftwf_complex*)mFftInBuffer.data(), (fftwf_complex*)mFftOutBuffer.data(), FFTW_FORWARD, FFTW_ESTIMATE);
   mFftPlanBwd = fftwf_plan_dft_1d(cTu, (fftwf_complex*)mFftInBuffer.data(), (fftwf_complex*)mFftOutBuffer.data(), FFTW_BACKWARD, FFTW_ESTIMATE);
 
-  mMeanCorrPeakValues.resize(cTu);
-  std::fill(mMeanCorrPeakValues.begin(), mMeanCorrPeakValues.end(), 0.0f);
+  mIndices.reserve(32);
+  mCorrPeakValues.fill(0.0f);
+  mMeanCorrPeakValues.fill(0.0f);
 
   // Prepare a table for the coarse frequency synchronization.
-  cRefArg.resize(cTu);
-  CalculateRelativePhase(mRefTable.data(), mFftInBuffer);
+  _calculate_relative_phase(mFftInBuffer, mRefTable);
+
   fftwf_execute(mFftPlanBwd);
-  for (i32 i = 0; i < cTu; i++)
+
+  for (i32 i = 0; i < cTu; ++i)
   {
-    cRefArg[i] = std::conj(mFftOutBuffer[i]);
+    mRefArgConj[i] = std::conj(mFftOutBuffer[i]);
   }
 
   connect(this, &PhaseReference::signal_show_correlation, ipRadio, &DabRadio::slot_show_correlation);
@@ -95,7 +95,7 @@ i32 PhaseReference::correlate_with_phase_ref_and_find_max_peak(const TArrayTn & 
 #ifdef HAVE_SSE_OR_AVX
   volk_32fc_x2_multiply_conjugate_32fc_a(mFftInBuffer.data(), mFftOutBuffer.data(), mRefTable.data(), cTu);
 #else
-  for (i32 i = 0; i < cTu; i++)
+  for (i32 i = 0; i < cTu; ++i)
   {
     mFftInBuffer[i] = mFftOutBuffer[i] * conj(mRefTable[i]);
   }
@@ -109,25 +109,34 @@ i32 PhaseReference::correlate_with_phase_ref_and_find_max_peak(const TArrayTn & 
     */
   f32 sum = 0;
 
-  for (i32 i = 0; i < cTu; i++)
+#ifdef HAVE_SSE_OR_AVX
+  volk_32fc_magnitude_32f_a(mCorrPeakValues.data(), mFftOutBuffer.data(), cTu);
+  volk_32f_x2_add_32f_a(mMeanCorrPeakValues.data(), mMeanCorrPeakValues.data(), mCorrPeakValues.data(), cTu);
+  volk_32f_accumulator_s32f_a(&sum, mCorrPeakValues.data(), cTu);
+#else
+  for (i32 i = 0; i < cTu; ++i)
   {
     const f32 absVal = std::abs(mFftOutBuffer[i]);
     mCorrPeakValues[i] = absVal;
     mMeanCorrPeakValues[i] += absVal;
     sum += absVal;
   }
+#endif
 
   sum /= (f32)(cTu);
-  if (sum == 0)
-    return -1; // avoid zero divide in case signal iV is 0
 
-  QVector<i32> indices;
+  if (sum == 0)
+  {
+    return -1; // avoid zero divide in case signal iV is 0
+  }
+
+  mIndices.clear();
   i32 maxIndex = -1;
   f32 maxL = -1000;
-  constexpr i16 GAP_SEARCH_WIDTH = 10;
-  constexpr i16 EXTENDED_SEARCH_REGION = 250;
-  const i16 idxStart = cTg - EXTENDED_SEARCH_REGION;
-  const i16 idxStop  = cTg + 2 * EXTENDED_SEARCH_REGION;
+  constexpr i16 cGapSearchWidth = 10;
+  constexpr i16 cExtendedSearchRegion = 250;
+  constexpr i16 idxStart = cTg - cExtendedSearchRegion;
+  constexpr i16 idxStop  = cTg + 2 * cExtendedSearchRegion;
   assert(idxStart >= 0);
   assert(idxStop <= (signed)mCorrPeakValues.size());
 
@@ -137,7 +146,7 @@ i32 PhaseReference::correlate_with_phase_ref_and_find_max_peak(const TArrayTn & 
     {
       bool foundOne = true;
 
-      for (i16 j = 1; (j < GAP_SEARCH_WIDTH) && (i + j < idxStop); j++)
+      for (i16 j = 1; (j < cGapSearchWidth) && (i + j < idxStop); ++j)
       {
         if (mCorrPeakValues[i + j] > mCorrPeakValues[i])
         {
@@ -147,14 +156,14 @@ i32 PhaseReference::correlate_with_phase_ref_and_find_max_peak(const TArrayTn & 
       }
       if (foundOne)
       {
-        indices.push_back(i);
+        mIndices.push_back(i);
 
         if (mCorrPeakValues[i] > maxL)
         {
           maxL = mCorrPeakValues[i];
           maxIndex = i;
         }
-        i += GAP_SEARCH_WIDTH;
+        i += cGapSearchWidth;
       }
     }
   }
@@ -169,15 +178,18 @@ i32 PhaseReference::correlate_with_phase_ref_and_find_max_peak(const TArrayTn & 
   {
     ++mDisplayCounter;
 
-    if (mDisplayCounter > mFramesPerSecond / 2)
+    if (mDisplayCounter > cFramesPerSecond / 2)
     {
-      for (i32 i = 0; i < cTu; i++)
+#ifdef HAVE_SSE_OR_AVX
+      volk_32f_s32f_multiply_32f_a(mMeanCorrPeakValues.data(), mMeanCorrPeakValues.data(), 1.0f / (cFramesPerSecond / 2 + 1), cTu);
+#else
+      for (i32 i = 0; i < cTu; ++i)
       {
-        mMeanCorrPeakValues[i] /= 6;
+        mMeanCorrPeakValues[i] /= (cFramesPerSecond / 2 + 1);
       }
+#endif
       mpResponse->put_data_into_ring_buffer(mMeanCorrPeakValues.data(), (i32)mMeanCorrPeakValues.size());
-      //mpResponse->put_data_into_ring_buffer(mCorrPeakValues.data(), (i32)mCorrPeakValues.size());
-      emit signal_show_correlation(sum * iThreshold, indices);
+      emit signal_show_correlation(sum * iThreshold, mIndices);
       mDisplayCounter = 0;
     }
   }
@@ -188,15 +200,15 @@ i32 PhaseReference::correlate_with_phase_ref_and_find_max_peak(const TArrayTn & 
    * This leads to a OFDM symbol interference which was clearly been seen in the IQ scope or Modulation quality.
    * So, the theory and also the experiment says that the first found peak (above the threshold) should be used as timing marker.
    */
-  if(mSyncOnStrongestPeak)
+  if (mSyncOnStrongestPeak)
   {
     assert(maxIndex >= 0);
     return maxIndex;
   }
   else
   {
-    assert(indices.size() > 0);
-    return indices[0];
+    assert(!mIndices.isEmpty());
+    return mIndices[0];
   }
 }
 
@@ -215,23 +227,27 @@ i32 PhaseReference::estimate_carrier_offset_from_sync_symbol_0(const TArrayTu & 
   f32 avg = 0;
 
   // Step 1: Get complex difference between consecutive bins
-  CalculateRelativePhase(iV.data(), mFftInBuffer);
+  _calculate_relative_phase(mFftInBuffer, iV);
 
   // Step 2: Get IFFT so we can do correlation in frequency domain via product in time domain
   fftwf_execute(mFftPlanBwd);
 
   // Step 3: Conjugate product in time domain
   //         NOTE: cRefArg is already the conjugate
-  for (i32 i = 0; i < cTu; i++)
+#ifdef HAVE_SSE_OR_AVX
+  volk_32fc_x2_multiply_32fc_a(mFftInBuffer.data(), mFftOutBuffer.data(), mRefArgConj.data(), cTu);
+#else
+  for (i32 i = 0; i < cTu; ++i)
   {
-    mFftInBuffer[i] = mFftOutBuffer[i] * cRefArg[i];
+    mFftInBuffer[i] = mFftOutBuffer[i] * mRefArgConj[i];
   }
+#endif
 
   // Step 4: Get FFT to get correlation in frequency domain
   fftwf_execute(mFftPlanFwd);
 
   // Step 5: Find the peak in our maximum coarse frequency error window
-  for (i32 i = -SEARCHRANGE/2; i <= SEARCHRANGE/2; i++)
+  for (i32 i = -cSearchRange / 2; i <= cSearchRange / 2; ++i)
   {
     const f32 value = std::abs(mFftOutBuffer[(cTu + i) % cTu]);
     if (value > max)
@@ -241,18 +257,20 @@ i32 PhaseReference::estimate_carrier_offset_from_sync_symbol_0(const TArrayTu & 
     }
     avg += value;
   }
-  avg /= (SEARCHRANGE + 1);
+  avg /= (cSearchRange + 1);
 
   // Step 6: Return if peak is too small
-  if(max < avg * 5)
+  if (max < avg * 5)
+  {
     return IDX_NOT_FOUND;
+  }
 
   // Step 7: Determine the coarse frequency offset
-  // We get the frequency offset in terms of FFT bins which we convert to normalised Hz
-  // Interpolate peak between neighbouring fft bins based on magnitude for more accurate estimate
+  // We get the frequency offset in terms of FFT bins which we convert to normalized Hz
+  // Interpolate peak between neighboring fft bins based on magnitude for more accurate estimate
   f32 peak[3];
   f32 peak_sum = 0.0f;
-  for(int i = 0; i<3; i++)
+  for (i32 i = 0; i < 3; ++i)
   {
     peak[i] = std::abs(mFftOutBuffer[(cTu + index + i - 1) % cTu]);
     peak_sum += peak[i];
@@ -266,11 +284,15 @@ void PhaseReference::set_sync_on_strongest_peak(bool sync)
   mSyncOnStrongestPeak = sync;
 }
 
-void PhaseReference::CalculateRelativePhase(const cf32 *fft_in, TArrayTu & arg_out)
+void PhaseReference::_calculate_relative_phase(TArrayTu & oArg, const TArrayTu & iFft) const
 {
-  for (i32 i = 0; i < cTu-1; i++)
+#ifdef HAVE_SSE_OR_AVX
+  volk_32fc_x2_multiply_conjugate_32fc(oArg.data(), iFft.data() + 1, iFft.data(), cTu - 1); // do not use the aligned variant with this +1 offset
+#else
+  for (i32 i = 0; i < cTu - 1; ++i)
   {
-    arg_out[i] = std::conj(fft_in[i]) * fft_in[i+1];
+    oArg[i] = std::conj(iFft[i]) * iFft[i + 1];
   }
-  arg_out[cTu-1] = {0,0};
+#endif
+  oArg[cTu - 1] = {0, 0};
 }

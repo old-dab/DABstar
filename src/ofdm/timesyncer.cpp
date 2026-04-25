@@ -80,7 +80,7 @@ TimeSyncer::EState TimeSyncer::read_samples_until_end_of_level_drop()
     mSyncBufferIndex = (mSyncBufferIndex + 1) & syncBufferMask;
     ++counter;
 
-    if (counter > cTn + cLevelSearchSize) // no rising edge found within null period?
+    if (counter > cTn + cLevelSearchSize + 20) // no rising edge found within null period? Add an empirical value to make sync more reliable in some cases
     {
       return EState::NO_END_OF_DIP_FOUND;
     }

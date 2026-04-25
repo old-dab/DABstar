@@ -29,17 +29,14 @@
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef  PHASE_TABLE_H
-#define  PHASE_TABLE_H
+#pragma once
 
-#include  <cstdio>
-#include  <cstdint>
 #include  "dab-constants.h"
 
 class PhaseTable
 {
 public:
-  struct SPhasetableElement
+  struct SPhaseTableElement
   {
     i32 kmin;
     i32 kmax;
@@ -50,14 +47,13 @@ public:
   explicit PhaseTable();
   ~PhaseTable() = default;
 
+protected:
   alignas(64) TArrayTu mRefTable;
 
 private:
-  const struct SPhasetableElement * mpCurrentTable;
+  const struct SPhaseTableElement * const mpCurrentTable;
 
   i32 h_table(i32 i, i32 j) const;
   f32 get_phi(i32 k) const;
 };
-
-#endif
 

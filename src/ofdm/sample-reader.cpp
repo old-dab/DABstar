@@ -92,11 +92,19 @@ void SampleReader::getSamples(TArrayTn & oV, const i32 iStartIdx, i32 iNoSamples
 
   iNoSamples = theRig->getSamples(buffer, iNoSamples);
 
+  // it is the suspicion that sometimes the iNoSamples == 0 so sLevel becomes nan below
+  if (iNoSamples <= 0)
+  {
+    qCritical("getSamples: no samples read");
+    return;
+  }
+
   if (dumpfilePointer.load() != nullptr)
   {
     _dump_samples_to_file(buffer, iNoSamples);
   }
 
+  assert(iNoSamples > 0);
   assert(iNoSamples <= cTn);
 
 #ifdef HAVE_SSE_OR_AVX
@@ -175,7 +183,7 @@ void SampleReader::getSamples(TArrayTn & oV, const i32 iStartIdx, i32 iNoSamples
   }
 
   // adjust frequency. We need Hz accuracy
-  const cf32 phase_inc = cmplx_from_phase(F_2_M_PI * -iFreqOffsetBBHz / INPUT_RATE);
+  const cf32 phase_inc = cmplx_from_phase(F_2_M_PI * -(f32)iFreqOffsetBBHz / INPUT_RATE);
   volk_32fc_s32fc_x2_rotator2_32fc_u(buffer, buffer, &phase_inc, &phase, iNoSamples);
 
 #else

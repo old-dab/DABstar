@@ -32,7 +32,7 @@
 #include  "phasetable.h"
 #include  <array>
 
-static const std::array<PhaseTable::SPhasetableElement, 49> modeI_table {{
+static const std::array<PhaseTable::SPhaseTableElement, 49> modeI_table {{
   { -768,  -737,  0, 1 },
   { -736,  -705,  1, 2 },
   { -704,  -673,  2, 0 },
@@ -85,9 +85,8 @@ static const std::array<PhaseTable::SPhasetableElement, 49> modeI_table {{
 }};
 
 PhaseTable::PhaseTable()
+  : mpCurrentTable(modeI_table.data())
 {
-  mpCurrentTable = modeI_table.data();
-
   // mRefTable is in the frequency domain
   for (i32 i = 0; i < cTu; i++)
   {

@@ -116,7 +116,7 @@ void DabProcessor::stop()
 void DabProcessor::run()  // run QThread
 {
   // this method is called with each new set frequency
-  f32 syncThreshold;
+  f32 syncThreshold = 0;
   i32 sampleCount = 0;
   mRfFreqShiftUsed = false;
 
@@ -150,6 +150,9 @@ void DabProcessor::run()  // run QThread
       {
       case EState::WAIT_FOR_TIME_SYNC_MARKER:
       {
+        mTiiDetector.reset();
+        mOfdmDecoder.reset();
+        mTiiCounter = 0;
         sampleCount = 0;
         syncThreshold = mcThreshold;
         mClockOffsetFrameCount = mClockOffsetTotalSamples = 0;
@@ -379,7 +382,7 @@ void DabProcessor::_set_rf_freq_offs_Hz(f32 iFreqHz)
   }
 }
 
-bool DabProcessor::_state_eval_sync_symbol(i32 & oSampleCount, f32 iThreshold)
+bool DabProcessor::_state_eval_sync_symbol(i32 & oSampleCount, const f32 iThreshold)
 {
   // get first OFDM symbol after time sync marker
   mSampleReader.getSamples(mOfdmBuffer, 0, cTu, mFreqOffsBBHz, false);
@@ -408,13 +411,10 @@ bool DabProcessor::_state_eval_sync_symbol(i32 & oSampleCount, f32 iThreshold)
 
 bool DabProcessor::_state_wait_for_time_sync_marker()
 {
-  mTiiDetector.reset();
-  mOfdmDecoder.reset();
-  mTiiCounter = 0;
-
   switch (mTimeSyncer.read_samples_until_end_of_level_drop())
   {
   case TimeSyncer::EState::TIMESYNC_ESTABLISHED:
+    // qDebug() << "Time sync established";
     mTimeSyncAttemptCount = 0;
     return true;
   case TimeSyncer::EState::NO_DIP_FOUND:
@@ -423,9 +423,11 @@ bool DabProcessor::_state_wait_for_time_sync_marker()
       emit signal_no_signal_found();
       mTimeSyncAttemptCount = 0;
     }
+    qWarning() << "No DIP found after " << mTimeSyncAttemptCount << " attempts";
     break;
   case TimeSyncer::EState::NO_END_OF_DIP_FOUND:
     mTimeSyncAttemptCount = 0;
+    qWarning() << "No end of DIP found";
     break;
   }
   return false;

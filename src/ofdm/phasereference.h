@@ -28,8 +28,7 @@
  *    along with Qt-DAB; if not, write to the Free Software
  *    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-#ifndef  PHASEREFERENCE_H
-#define  PHASEREFERENCE_H
+#pragma once
 
 #include  "phasetable.h"
 #include  "dab-constants.h"
@@ -59,26 +58,26 @@ public:
   static constexpr i32 IDX_NOT_FOUND = 100000;
 
 private:
-  static constexpr i16 SEARCHRANGE = (2 * 70);
+  static constexpr i16 cSearchRange = (2 * 70);
+  static constexpr i32 cFramesPerSecond = INPUT_RATE / cTF; // about 10 frames/s
 
-  void CalculateRelativePhase(const cf32 *fft_in, TArrayTu & arg_out);
-  std::vector<cf32> cRefArg;
-
-  const i32 mFramesPerSecond;
   i32 mDisplayCounter = 0;
   bool mSyncOnStrongestPeak = false;
 
+  using TArrayTuFloat = std::array<f32, cTu>;
+  alignas(64) TArrayTuFloat mCorrPeakValues;
+  alignas(64) TArrayTuFloat mMeanCorrPeakValues;
+  alignas(64) TArrayTu mRefArgConj;
   alignas(64) TArrayTu mFftInBuffer;
   alignas(64) TArrayTu mFftOutBuffer;
   fftwf_plan mFftPlanFwd;
   fftwf_plan mFftPlanBwd;
 
   RingBuffer<f32> * const mpResponse;
-  std::vector<f32> mCorrPeakValues;
-  std::vector<f32> mMeanCorrPeakValues;
+  QVector<i32> mIndices; // as member to avoid memory reallocations and signal takes only reference
+
+  void _calculate_relative_phase(TArrayTu & oArg, const TArrayTu & iFft) const;
 
 signals:
   void signal_show_correlation(f32, const QVector<i32> &);
 };
-
-#endif
